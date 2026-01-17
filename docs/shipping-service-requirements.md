@@ -1,103 +1,129 @@
 # 発送管理システム (Shipping Service) 要件定義
 
-**Version:** 0.2.0 (Final for MVP)
-**Status:** Approved
-**Author:** Tech Lead Candidate
+**Version:** 0.2.2  
+**Status:** Approved (Architecture Review Applied)
 
 ---
 
 ## 1. 目的と背景
 
 ### 1.1 目的
-- **マイクロサービスアーキテクチャの拡張:** 既存のJava/Springエコシステムに対し、新たにGo言語によるサービスを追加し、Polyglotな構成およびイベント駆動アーキテクチャ（EDA）を実証する。
-- **物流ドメインの分離:** 注文（Order）と物理的な物流（Shipping）のライフサイクルを分離し、倉庫業務の実情に即したシステムフローを定義する。
+- 既存 EC システム（ec-demo）に対する発送管理機能の分離・提供
+- 物流ドメインを独立したマイクロサービスとして定義する
+- 非同期連携を前提とした実務的なアーキテクチャを採用する
 
 ### 1.2 背景
-既存の `ec-demo` は注文・決済・在庫までを同期的な分散トランザクション（Seata）で管理している。しかし、発送業務は物理的な時間を要し、外部配送業者との連携も発生するため、非同期かつ結果整合性を用いた疎結合な設計が求められる。
+既存の ec-demo は、注文・決済・在庫までを同期的な分散トランザクションで管理している。  
+一方、発送業務は物理的な作業時間を伴い、外部要因（倉庫作業・配送業者）に強く依存するため、  
+**結果整合性（Eventual Consistency）を前提とした非同期設計**が適している。
 
 ---
 
 ## 2. 前提条件・制約事項（Scope Management）
 
 ### 2.1 業務制約（MVPスコープ）
-1.  **シングルシップメント（1注文1発送）**
-    * 1つの注文IDに対して、必ず1回の発送（1個口）を行う。
-    * 分割発送（Split Shipment）および複数注文の同梱（Merge Shipment）は対象外とする。
-2.  **住所変更の制限**
-    * 発送データ生成後（ステータス: `READY` 以降）のシステム上の住所変更は対応しない。
-    * 運用での個別対応（配送業者への直接連絡など）とする。
-3.  **配送業者連携のモック化**
-    * ヤマト運輸や佐川急便等のAPIとのリアルタイム連携は行わない。
-    * 配送業者の選択と追跡番号の入力・バリデーションのみを実装する。
+1. **1注文 = 1発送（シングルシップメント）**
+2. **READY 以降の住所変更は不可**
+3. **配送業者 API 連携は行わない（手動入力のみ）**
 
 ### 2.2 技術制約
-1.  **認証・認可**
-    * 既存のBFFおよび認証基盤（Firebase Auth / Session）を利用する。
-2.  **データ整合性**
-    * Order Serviceとの連携はKafkaイベントを用いた「結果整合性（Eventual Consistency）」を採用する。
-    * 厳密なトランザクション（Seata）は使用しない。
+- 認証・認可は BFF / Gateway 側で完結
+- Shipping Service は内部 API として提供
+- Order Service との整合性は Kafka による非同期連携とする
+- 分散トランザクション（Seata / Saga）は使用しない
 
 ---
 
 ## 3. 業務フローとステータス定義
 
-### 3.1 ステータスライフサイクル
-
-| ステータス | コード | 担当 | 定義・業務状態 | キャンセル可否 |
-| :--- | :--- | :--- | :--- | :--- |
-| **CREATED** | `10` | System | 注文確定後、データが連携された初期状態。倉庫作業未着手。 | **可** (Order側で可能) |
-| **READY** | `20` | Ops | **[Cut-off Point]** 出荷指示済み。ピッキングリスト出力・梱包作業中。 | **不可** (システム上ロック) |
-| **SHIPPED** | `30` | Ops | 配送業者へ引き渡し完了。追跡番号確定。ec-demoへ発送通知。 | **不可** |
-| **DELIVERED**| `40` | System | 購入者へのお届け完了（今回は手動更新またはバッチ想定）。 | **不可** (返品扱い) |
-| **RETURNED** | `90` | Ops | 宛先不明・長期不在等による差出人返送。 | **不可** |
-| **CANCELLED**| `99` | System | 発送作業前に注文がキャンセルされた状態。 | - |
+| ステータス | コード | 定義 |
+|---|---|---|
+| CREATED | 10 | 注文確定直後、作業未着手 |
+| READY | 20 | 出荷指示済み（業務上の Cut-off） |
+| SHIPPED | 30 | 配送業者へ引き渡し完了 |
+| DELIVERED | 40 | 配送完了（将来拡張） |
+| RETURNED | 90 | 返送対応 |
+| CANCELLED | 99 | 発送前キャンセル |
 
 ---
 
-## 4. 機能要件詳細
+## 4. 機能要件（API）
 
-### 4.1 Backend API (Go: Shipping Service)
+### 4.1 発送一覧・詳細 API
 
-**技術要件:** Gin/Echo等のWebフレームワークを使用し、Clean ArchitectureまたはStandard Go Layoutを採用すること。
-
-| カテゴリ | Method | Endpoint | 説明 | 技術的考慮事項 |
-| :--- | :--- | :--- | :--- | :--- |
-| **Event** | - | `Kafka: order.events` | 注文作成/キャンセルイベントの購読 | **冪等性(Idempotency)**: `order_id` をキーに重複処理を防止。 |
-| **Query** | `GET` | `/shippings` | 発送一覧取得 | ステータス、キーワード検索。ページネーション。 |
-| **Query** | `GET` | `/shippings/:orderId` | 発送詳細取得 | |
-| **Command**| `PUT` | `/shippings/:orderId` | 発送情報の登録・更新 | **楽観ロック(Optimistic Lock)**: `version` カラムの一致を確認。不一致なら `409 Conflict`。 |
-
-### 4.2 Management UI (Next.js Admin)
-
-以下の操作画面を実装する。
-
-#### (1) 発送登録 (Shipment Registration)
-* **トリガー:** ステータス `READY` の注文。
-* **入力項目:**
-    * 配送業者 (Carrier): Select (Yamato, Sagawa, JapanPost)
-    * 追跡番号 (Tracking Number): Text
-* **バリデーション:** 配送業者ごとに追跡番号の桁数・形式をチェック（例: 数字12桁）。
-
-#### (2) 発送情報修正 (Shipment Update)
-* **トリガー:** ステータス `SHIPPED` / `RETURNED` の注文。
-* **排他制御UX:**
-    * 画面を開いた時点の `version` を送信する。
-    * 他者が更新していた場合（Backendから `409` 返却）、エラーメッセージ「他ユーザーにより更新されました」を表示し、最新データを再取得する。
+| Method | Endpoint | 説明 |
+|---|---|---|
+| GET | /shippings | 発送一覧取得（検索・フィルタ） |
+| GET | /shippings/{order_id} | 発送詳細取得 |
+| PUT | /shippings/{order_id} | 発送情報更新（楽観ロック） |
 
 ---
 
-## 5. データモデル設計 (Schema)
+### 4.2 Dashboard 集計用 API（追加）
+
+**目的:**  
+Dashboard 上部に表示する各ステータス件数を、**1リクエストで効率的に取得**する。
+
+| Method | Endpoint | 説明 |
+|---|---|---|
+| GET | /shippings/summary | 発送ステータス別件数を取得 |
+
+#### Response（例）
+```json
+{
+  "created": 10,
+  "ready": 5,
+  "shipped_today": 8,
+  "returned": 1
+}
+```
+
+- Dashboard 表示は **必ず本 API を使用**する
+- 一覧 API の全件取得・count で代替しないこと
+
+---
+
+## 5. データモデル（概要）
 
 ```go
 type Shipping struct {
-    ID              uint64    `gorm:"primaryKey" json:"id"`
-    OrderID         uint64    `gorm:"uniqueIndex;not null" json:"order_id"`
-    Status          string    `gorm:"size:20;index" json:"status"` 
-    Carrier         string    `gorm:"size:20" json:"carrier"`
-    TrackingNumber  string    `gorm:"size:50" json:"tracking_number"`
-    ShippingAddress JSON      `gorm:"type:json" json:"shipping_address"` // Snapshot
-    Version         uint64    `gorm:"default:1" json:"version"` // Optimistic Lock
-    CreatedAt       time.Time `json:"created_at"`
-    UpdatedAt       time.Time `json:"updated_at"`
+    ID             uint64    `json:"id"`
+    OrderID        uint64    `json:"order_id"`
+    Status         string    `json:"status"`
+    Carrier        string    `json:"carrier"`
+    TrackingNumber string    `json:"tracking_number"`
+    Version        uint64    `json:"version"`
+    CreatedAt      time.Time `json:"created_at"`
+    UpdatedAt      time.Time `json:"updated_at"`
 }
 ```
+
+---
+
+## 6. 非機能要件
+
+- **整合性:** Kafka イベントの冪等処理
+- **同時更新:** version による楽観ロック
+- **可観測性:** 構造化ログ（JSON）出力
+- **拡張性:** 配送業者 API / ステータス自動更新に対応可能な設計
+
+---
+
+## 7. アーキテクチャ方針（確定）
+
+- Go における **Standard Go Layout** を採用
+  - `cmd/`
+  - `internal/handler`
+  - `internal/service`
+  - `internal/repository`
+- 過度な Clean Architecture は採用しない
+- 実装は MVP スコープを厳守する
+
+---
+
+本ドキュメントは、以下と整合していることを保証する。
+
+- UI 設計: ui-dashboard-design.md v0.2.2  
+- UI ↔ API I/F: ui-api-interface-mapping.md v0.2.0  
+
+**Shipping Service 要件定義の最新版（v0.2.2）とする。**
