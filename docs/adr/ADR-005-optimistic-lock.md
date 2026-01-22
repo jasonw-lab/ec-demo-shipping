@@ -1,6 +1,8 @@
 # ADR-005: 排他制御（Optimistic Lock 採用理由）
 
 **Status:** Accepted  
+**Version:** 1.0.0
+**Last Updated:** 2026-01-22  
 **Date:** 2026-01-19  
 **Decision Makers:** Tech Lead  
 **Context:** Shipping Service 同時更新制御

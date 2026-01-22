@@ -43,7 +43,19 @@
 | SHIPPED | 30 | 配送業者へ引き渡し完了 |
 | DELIVERED | 40 | 配送完了（将来拡張） |
 | RETURNED | 90 | 返送対応 |
+| RETURNED | 90 | 返送対応（受取拒否、宛所不明等） |
 | CANCELLED | 99 | 発送前キャンセル |
+
+### 3.1 ステークス遷移ルール
+- **許可:**
+  - CREATED → READY: 出荷指示
+  - CREATED → CANCELLED: キャンセル
+  - READY → SHIPPED: 出荷完了登録
+  - READY → CANCELLED: 出荷前キャンセル
+  - SHIPPED → RETURNED: 返送
+- **禁止:**
+  - SHIPPED → READY: 逆戻り禁止
+  - 完了後の変更: SHIPPED 後のステータス変更は原則不可（RETURNED除く）
 
 ---
 
@@ -87,14 +99,25 @@ Dashboard 上部に表示する各ステータス件数を、**1リクエスト�
 
 ```go
 type Shipping struct {
-    ID             uint64    `json:"id"`
-    OrderID        uint64    `json:"order_id"`
-    Status         string    `json:"status"`
-    Carrier        string    `json:"carrier"`
-    TrackingNumber string    `json:"tracking_number"`
-    Version        uint64    `json:"version"`
-    CreatedAt      time.Time `json:"created_at"`
-    UpdatedAt      time.Time `json:"updated_at"`
+    ID              uint64     `json:"id" gorm:"primaryKey"`
+    OrderID         uint64     `json:"order_id" gorm:"uniqueIndex;not null"`
+    Status          string     `json:"status" gorm:"type:varchar(20);not null"`
+    Carrier         string     `json:"carrier" gorm:"type:varchar(50)"`
+    TrackingNumber  string     `json:"tracking_number" gorm:"type:varchar(100)"`
+    
+    // Address Snapshot (非正規化: Orderからコピー)
+    ShippingAddress string     `json:"shipping_address" gorm:"type:text"`
+    
+    // Status Timestamps
+    ReadyAt         *time.Time `json:"ready_at"`
+    ShippedAt       *time.Time `json:"shipped_at"`
+    DeliveredAt     *time.Time `json:"delivered_at"`
+    
+    // Metadata
+    Version         uint64     `json:"version" gorm:"default:1"`
+    CreatedAt       time.Time  `json:"created_at"`
+    UpdatedAt       time.Time  `json:"updated_at"`
+    DeletedAt       *time.Time `json:"deleted_at" gorm:"index"`
 }
 ```
 
