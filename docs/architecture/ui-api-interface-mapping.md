@@ -80,7 +80,7 @@
 |---|---|---|---|---|
 | 一覧取得 | GET | /shippings | page, size | |
 | ステータス絞込 | GET | /shippings | status | |
-| キーワード検索 | GET | /shippings | keyword | order_id / tracking_number |
+| キーワード検索 | GET | /shippings | keyword | order_id, tracking_number への部分一致 (Case Insensitive) |
 | Carrier 絞込 | GET | /shippings | carrier | |
 
 ---
@@ -89,7 +89,7 @@
 
 | UI操作 | HTTP | Endpoint | Path | 備考 |
 |---|---|---|---|---|
-| 詳細表示 | GET | /shippings/{order_id} | order_id | Sheet 用 |
+| 詳細表示 | GET | /shippings/{order_id} | order_id | Sheet 用。Responseは一覧DTOに `shipping_address` 等を追加した詳細形式 |
 
 ---
 
@@ -97,7 +97,7 @@
 
 | UI操作 | HTTP | Endpoint | Payload | 備考 |
 |---|---|---|---|---|
-| 出荷登録 | PUT | /shippings/{order_id} | carrier, tracking_number, version | |
+| 出荷登録 | PUT | /shippings/{order_id} | Body: `{status, carrier, tracking_number, version}` | |
 | 排他エラー | - | - | 409 Conflict | Toast + 再取得 |
 
 ---

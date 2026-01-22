@@ -1,6 +1,8 @@
 # ADR-004: 非同期連携（Kafka + Eventual Consistency）
 
 **Status:** Accepted  
+**Version:** 1.0.0
+**Last Updated:** 2026-01-22  
 **Date:** 2026-01-19  
 **Decision Makers:** Tech Lead  
 **Context:** Shipping Service ↔ Order Service 連携

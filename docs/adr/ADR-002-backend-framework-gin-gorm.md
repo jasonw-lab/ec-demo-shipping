@@ -1,6 +1,8 @@
-# ADR-003: Backend Framework / ORM 選定（Gin + GORM）
+# ADR-002: Backend Framework / ORM 選定（Gin + GORM）
 
 **Status:** Accepted  
+**Version:** 1.0.0
+**Last Updated:** 2026-01-22  
 **Date:** 2026-01-18  
 **Decision Makers:** Tech Lead  
 **Context:** Shipping Service Backend (Go)

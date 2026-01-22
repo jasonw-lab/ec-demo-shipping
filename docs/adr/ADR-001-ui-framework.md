@@ -1,6 +1,8 @@
 # ADR-001: UI フレームワーク選定
 
 **Status:** Accepted  
+**Version:** 1.0.0
+**Last Updated:** 2026-01-22  
 **Date:** 2026-01-17  
 **Decision Makers:** Tech Lead  
 **Context:** Shipping Service Admin UI (Next.js)

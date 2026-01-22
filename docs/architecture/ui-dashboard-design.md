@@ -129,6 +129,7 @@ Dashboard Layout
   - Tracking Number
 - External Link:
   - 追跡番号から配送業者の追跡ページへのリンクを表示（別タブ）
+  - URL構築は Frontend 側で行う（Backendは追跡番号のみ返す）
 
 ---
 
@@ -207,7 +208,8 @@ Sidebar
 - shadcn/ui の table / sheet / card / form / badge を利用する。
 - API Client で `version` フィールドを必ず送信する。
 - 一覧は TanStack Table を使用してもよい。
-- 件数が少ない想定のため、クライアントサイドフィルタでも可。
+- 件数が少ない想定（1000件未満）のため、クライアントサイドフィルタでも可。
+- それ以上になる場合は Server Side Pagination に切り替える。
 
 ---
 
