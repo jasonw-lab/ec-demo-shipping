@@ -132,4 +132,3 @@ gh pr create --title "feat(scope): description (issue-XXX)" \
 ### Rate Limit 対策
 - 不要な API 呼び出しを減らす
 - 複数コマンドは並列実行でまとめる
-- 自動実行せず確認を待つ
