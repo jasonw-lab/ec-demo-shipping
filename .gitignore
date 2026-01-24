@@ -83,7 +83,6 @@ ai*
 review*
 update*.py
 update*.sh
-*_complete.md
 docs/plan
 
 
