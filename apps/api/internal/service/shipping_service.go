@@ -15,6 +15,7 @@ type ShippingService interface {
 	ListShippings(filter *repository.ShippingFilter) ([]domain.Shipping, int64, error)
 	GetByOrderID(orderID string) (*domain.Shipping, error)
 	Update(orderID string, req *UpdateShippingRequest) (*domain.Shipping, error)
+	GetSummary() (*repository.ShippingSummary, error)
 }
 
 // UpdateShippingRequest represents the request body for updating a shipping
@@ -226,4 +227,15 @@ func (s *shippingService) validateTrackingNumber(carrier, trackingNumber string)
 	}
 
 	return nil
+}
+
+// GetSummary retrieves dashboard summary with JST date boundary for shipped_today
+func (s *shippingService) GetSummary() (*repository.ShippingSummary, error) {
+	// Calculate JST today's start and end times
+	jst := time.FixedZone("JST", 9*60*60)
+	now := time.Now().In(jst)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, jst)
+	todayEnd := todayStart.AddDate(0, 0, 1)
+
+	return s.repo.GetSummary(todayStart, todayEnd)
 }
