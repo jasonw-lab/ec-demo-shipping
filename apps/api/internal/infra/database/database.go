@@ -26,6 +26,12 @@ func NewDB(cfg *config.DatabaseConfig) (*gorm.DB, error) {
 func Migrate(db *gorm.DB) error {
 	log.Println("Running database migrations...")
 
+	// Check if shippings table already exists
+	if db.Migrator().HasTable(&domain.Shipping{}) {
+		log.Println("Shippings table already exists, skipping migration")
+		return nil
+	}
+
 	err := db.AutoMigrate(
 		&domain.Shipping{},
 	)
