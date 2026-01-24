@@ -2,16 +2,26 @@ package repository
 
 import (
 	"strings"
+	"time"
 
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/domain"
 	"gorm.io/gorm"
 )
+
+// ShippingSummary holds the aggregated counts for dashboard
+type ShippingSummary struct {
+	Created      int64 `json:"created"`
+	Ready        int64 `json:"ready"`
+	ShippedToday int64 `json:"shipped_today"`
+	Returned     int64 `json:"returned"`
+}
 
 // ShippingRepository handles database operations for Shipping
 type ShippingRepository interface {
 	FindAll(filter *ShippingFilter) ([]domain.Shipping, int64, error)
 	FindByOrderID(orderID string) (*domain.Shipping, error)
 	Update(shipping *domain.Shipping) error
+	GetSummary(todayStart, todayEnd time.Time) (*ShippingSummary, error)
 }
 
 // ShippingFilter holds filter parameters for listing shippings
@@ -114,4 +124,27 @@ func (r *shippingRepository) Update(shipping *domain.Shipping) error {
 	shipping.Version++
 
 	return nil
+}
+
+// GetSummary retrieves aggregated counts for dashboard with a single efficient query
+func (r *shippingRepository) GetSummary(todayStart, todayEnd time.Time) (*ShippingSummary, error) {
+	var summary ShippingSummary
+
+	// Use a single query with conditional COUNT to aggregate all stats efficiently
+	err := r.db.Model(&domain.Shipping{}).
+		Select(`
+			COUNT(CASE WHEN status = ? THEN 1 END) as created,
+			COUNT(CASE WHEN status = ? THEN 1 END) as ready,
+			COUNT(CASE WHEN status IN (?, ?) AND shipped_at >= ? AND shipped_at < ? THEN 1 END) as shipped_today,
+			COUNT(CASE WHEN status = ? THEN 1 END) as returned
+		`, domain.StatusCreated, domain.StatusReady,
+			domain.StatusShipped, domain.StatusDelivered, todayStart, todayEnd,
+			domain.StatusReturned).
+		Scan(&summary).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &summary, nil
 }
