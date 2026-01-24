@@ -149,3 +149,18 @@ func (h *ShippingHandler) Update(c *gin.Context) {
 	// Return updated shipping
 	c.JSON(http.StatusOK, shipping)
 }
+
+// Summary handles GET /shippings/summary
+func (h *ShippingHandler) Summary(c *gin.Context) {
+	// Get summary from service
+	summary, err := h.service.GetSummary()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrieve summary",
+		})
+		return
+	}
+
+	// Return summary
+	c.JSON(http.StatusOK, summary)
+}
