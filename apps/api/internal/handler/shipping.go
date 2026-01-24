@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/infra/repository"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/service"
+	"gorm.io/gorm"
 )
 
 // ShippingHandler handles HTTP requests for shipping operations
@@ -69,4 +71,81 @@ func parseIntQuery(c *gin.Context, key string, defaultValue int) int {
 	}
 
 	return value
+}
+
+// Get handles GET /shippings/:order_id
+func (h *ShippingHandler) Get(c *gin.Context) {
+	orderID := c.Param("order_id")
+
+	// Get shipping from service
+	shipping, err := h.service.GetByOrderID(orderID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Shipping not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrieve shipping",
+		})
+		return
+	}
+
+	// Return shipping
+	c.JSON(http.StatusOK, shipping)
+}
+
+// Update handles PUT /shippings/:order_id
+func (h *ShippingHandler) Update(c *gin.Context) {
+	orderID := c.Param("order_id")
+
+	// Parse request body
+	var req service.UpdateShippingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "validation error",
+			"errors": []gin.H{
+				{"field": "body", "reason": "invalid JSON format"},
+			},
+		})
+		return
+	}
+
+	// Update shipping
+	shipping, err := h.service.Update(orderID, &req)
+	if err != nil {
+		// Handle validation errors
+		var validationErr *service.ErrValidation
+		if errors.As(err, &validationErr) {
+			c.JSON(http.StatusBadRequest, validationErr)
+			return
+		}
+
+		// Handle conflict errors (optimistic locking)
+		if errors.Is(err, service.ErrConflict) {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   "conflict",
+				"message": "データが更新されています。再読み込みしてください。",
+			})
+			return
+		}
+
+		// Handle not found errors
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Shipping not found",
+			})
+			return
+		}
+
+		// Handle other errors
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update shipping",
+		})
+		return
+	}
+
+	// Return updated shipping
+	c.JSON(http.StatusOK, shipping)
 }

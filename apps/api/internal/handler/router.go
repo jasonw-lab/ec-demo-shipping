@@ -22,6 +22,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 	// Shipping endpoints
 	router.GET("/shippings", shippingHandler.List)
+	router.GET("/shippings/:order_id", shippingHandler.Get)
+	router.PUT("/shippings/:order_id", shippingHandler.Update)
 
 	// API v1 group (for future use)
 	// v1 := router.Group("/api/v1")

@@ -10,6 +10,8 @@ import (
 // ShippingRepository handles database operations for Shipping
 type ShippingRepository interface {
 	FindAll(filter *ShippingFilter) ([]domain.Shipping, int64, error)
+	FindByOrderID(orderID string) (*domain.Shipping, error)
+	Update(shipping *domain.Shipping) error
 }
 
 // ShippingFilter holds filter parameters for listing shippings
@@ -70,4 +72,46 @@ func (r *shippingRepository) FindAll(filter *ShippingFilter) ([]domain.Shipping,
 	}
 
 	return shippings, total, nil
+}
+
+// FindByOrderID retrieves a shipping by order ID
+func (r *shippingRepository) FindByOrderID(orderID string) (*domain.Shipping, error) {
+	var shipping domain.Shipping
+
+	if err := r.db.Where("order_id = ?", orderID).First(&shipping).Error; err != nil {
+		return nil, err
+	}
+
+	return &shipping, nil
+}
+
+// Update updates a shipping record with optimistic locking
+func (r *shippingRepository) Update(shipping *domain.Shipping) error {
+	// Use optimistic locking: update only if version matches
+	result := r.db.Model(&domain.Shipping{}).
+		Where("id = ? AND version = ?", shipping.ID, shipping.Version).
+		Updates(map[string]interface{}{
+			"status":          shipping.Status,
+			"carrier":         shipping.Carrier,
+			"tracking_number": shipping.TrackingNumber,
+			"ready_at":        shipping.ReadyAt,
+			"shipped_at":      shipping.ShippedAt,
+			"delivered_at":    shipping.DeliveredAt,
+			"version":         gorm.Expr("version + 1"),
+			"updated_at":      gorm.Expr("NOW()"),
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Check if any row was updated
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	// Increment version in the object
+	shipping.Version++
+
+	return nil
 }
