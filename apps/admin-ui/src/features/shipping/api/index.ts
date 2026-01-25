@@ -1,4 +1,10 @@
 // Shipping API hooks
 
 export { useShippingList } from "./use-shipping-list";
-export { fetchShippings } from "./shipping-api";
+export { useShippingDetail } from "./use-shipping-detail";
+export { useUpdateShipping } from "./use-update-shipping";
+export {
+  fetchShippings,
+  fetchShippingDetail,
+  updateShipping,
+} from "./shipping-api";

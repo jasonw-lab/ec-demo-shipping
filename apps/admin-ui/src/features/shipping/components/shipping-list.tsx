@@ -7,6 +7,7 @@ import type { Carrier, ShippingStatus } from "../types";
 import { FilterBar } from "./filter-bar";
 import { ShippingTable } from "./shipping-table";
 import { Pagination } from "./pagination";
+import { ShippingDetailSheet } from "./shipping-detail-sheet";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -17,6 +18,10 @@ export function ShippingList() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Sheet state for detail view
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Set default filter to READY on initial load
   useEffect(() => {
@@ -56,6 +61,18 @@ export function ShippingList() {
     setPage(1);
   };
 
+  const handleRowClick = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setIsSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setIsSheetOpen(open);
+    if (!open) {
+      setSelectedOrderId(null);
+    }
+  };
+
   const totalPages = data ? Math.ceil(data.total / DEFAULT_PAGE_SIZE) : 0;
 
   if (error) {
@@ -80,7 +97,11 @@ export function ShippingList() {
         onReset={handleReset}
       />
 
-      <ShippingTable data={data?.data || []} isLoading={isLoading} />
+      <ShippingTable
+        data={data?.data || []}
+        isLoading={isLoading}
+        onRowClick={handleRowClick}
+      />
 
       {totalPages > 1 && (
         <Pagination
@@ -96,6 +117,12 @@ export function ShippingList() {
           {Math.min(page * DEFAULT_PAGE_SIZE, data.total)} 件を表示
         </div>
       )}
+
+      <ShippingDetailSheet
+        orderId={selectedOrderId}
+        open={isSheetOpen}
+        onOpenChange={handleSheetOpenChange}
+      />
     </div>
   );
 }

@@ -9,10 +9,17 @@ export type {
   ShippingListParams,
   ShippingListResponse,
   ShippingSummary,
+  UpdateShippingRequest,
+  ValidationError,
+  ApiError,
 } from "./types";
 
 // API hooks
-export { useShippingList } from "./api";
+export {
+  useShippingList,
+  useShippingDetail,
+  useUpdateShipping,
+} from "./api";
 
 // Components
 export {
@@ -21,4 +28,9 @@ export {
   FilterBar,
   StatusBadge,
   Pagination,
+  ShippingDetailSheet,
+  ShippingInfo,
+  ShipForm,
+  TrackingLink,
+  StatusActionButton,
 } from "./components";

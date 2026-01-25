@@ -131,9 +131,10 @@ const columns: ColumnDef<Shipping>[] = [
 interface ShippingTableProps {
   data: Shipping[];
   isLoading?: boolean;
+  onRowClick?: (orderId: string) => void;
 }
 
-export function ShippingTable({ data, isLoading }: ShippingTableProps) {
+export function ShippingTable({ data, isLoading, onRowClick }: ShippingTableProps) {
   const table = useReactTable({
     data,
     columns,
@@ -191,7 +192,11 @@ export function ShippingTable({ data, isLoading }: ShippingTableProps) {
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                onClick={() => onRowClick?.(row.original.order_id)}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
