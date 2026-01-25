@@ -1,0 +1,506 @@
+<mxfile host="app.diagrams.net" modified="2026-01-23T06:18:00.000Z" agent="Antigravity" version="24.0.0" type="device">
+  <diagram id="sequence-all" name="UC Sequence Diagrams">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="3000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- UC1: Order Paid -> Create Shipping -->
+        <mxCell id="uc1-title" value="UC1: 注文確定イベントで発送作成" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC1 Lifelines -->
+        <mxCell id="uc1-ll-order" value="Order Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="120" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc1-ll-kafka" value="Kafka" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="240" y="80" width="120" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc1-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="130" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc1-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="620" y="80" width="100" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC1 Messages -->
+        <mxCell id="uc1-m1" value="ORDER_PAID発行" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="uc1-ll-order" target="uc1-ll-kafka">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="180" y="140" as="sourcePoint"/>
+            <mxPoint x="260" y="140" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc1-m2" value="イベント購読" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="uc1-ll-kafka" target="uc1-ll-api">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="360" y="170" as="sourcePoint"/>
+            <mxPoint x="440" y="170" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc1-m3" value="発送作成(CREATED)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="uc1-ll-api" target="uc1-ll-db">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="550" y="200" as="sourcePoint"/>
+            <mxPoint x="630" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC2: Shipping List -->
+        <mxCell id="uc2-title" value="UC2: 発送一覧取得" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC2 Lifelines -->
+        <mxCell id="uc2-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc2-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="340" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc2-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="340" width="130" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc2-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="570" y="340" width="100" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC2 Messages -->
+        <mxCell id="uc2-m1" value="一覧表示要求" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="110" y="420" as="sourcePoint"/>
+            <mxPoint x="270" y="420" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc2-m2" value="GET /shippings" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="270" y="450" as="sourcePoint"/>
+            <mxPoint x="445" y="450" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc2-m3" value="検索クエリ" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="445" y="480" as="sourcePoint"/>
+            <mxPoint x="620" y="480" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc2-m4" value="一覧データ" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="510" as="sourcePoint"/>
+            <mxPoint x="445" y="510" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc2-m5" value="一覧レスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="540" as="sourcePoint"/>
+            <mxPoint x="270" y="540" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc2-m6" value="一覧表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="560" as="sourcePoint"/>
+            <mxPoint x="110" y="560" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC3: Shipping Detail -->
+        <mxCell id="uc3-title" value="UC3: 発送詳細取得" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC3 Lifelines -->
+        <mxCell id="uc3-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="660" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc3-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="660" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc3-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="660" width="130" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc3-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="570" y="660" width="100" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC3 Messages -->
+        <mxCell id="uc3-m1" value="詳細表示要求" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="110" y="740" as="sourcePoint"/>
+            <mxPoint x="270" y="740" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc3-m2" value="GET /shippings/{order_id}" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="270" y="770" as="sourcePoint"/>
+            <mxPoint x="445" y="770" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc3-m3" value="詳細取得" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="445" y="800" as="sourcePoint"/>
+            <mxPoint x="620" y="800" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc3-m4" value="詳細データ" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="830" as="sourcePoint"/>
+            <mxPoint x="445" y="830" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc3-m5" value="詳細レスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="860" as="sourcePoint"/>
+            <mxPoint x="270" y="860" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc3-m6" value="詳細表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="880" as="sourcePoint"/>
+            <mxPoint x="110" y="880" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC4: Summary -->
+        <mxCell id="uc4-title" value="UC4: サマリ取得" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="940" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC4 Lifelines -->
+        <mxCell id="uc4-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="980" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc4-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="980" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc4-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="980" width="130" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc4-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="570" y="980" width="100" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC4 Messages -->
+        <mxCell id="uc4-m1" value="サマリ表示要求" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="110" y="1060" as="sourcePoint"/>
+            <mxPoint x="270" y="1060" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc4-m2" value="GET /shippings/summary" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="270" y="1090" as="sourcePoint"/>
+            <mxPoint x="445" y="1090" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc4-m3" value="集計クエリ" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="445" y="1120" as="sourcePoint"/>
+            <mxPoint x="620" y="1120" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc4-m4" value="サマリデータ" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="1150" as="sourcePoint"/>
+            <mxPoint x="445" y="1150" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc4-m5" value="サマリレスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="1180" as="sourcePoint"/>
+            <mxPoint x="270" y="1180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc4-m6" value="サマリ表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="1200" as="sourcePoint"/>
+            <mxPoint x="110" y="1200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC5: READY -->
+        <mxCell id="uc5-title" value="UC5: 出荷指示 (CREATED → READY)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1260" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC5 Lifelines -->
+        <mxCell id="uc5-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1300" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc5-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="1300" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc5-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1300" width="130" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc5-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="570" y="1300" width="100" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC5 Messages -->
+        <mxCell id="uc5-m1" value="出荷指示" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="110" y="1380" as="sourcePoint"/>
+            <mxPoint x="270" y="1380" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc5-m2" value="PUT /shippings/{order_id} (READY)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="270" y="1410" as="sourcePoint"/>
+            <mxPoint x="445" y="1410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc5-m3" value="ステータス更新" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="445" y="1440" as="sourcePoint"/>
+            <mxPoint x="620" y="1440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc5-m4" value="更新結果" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="1470" as="sourcePoint"/>
+            <mxPoint x="445" y="1470" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc5-m5" value="完了レスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="1500" as="sourcePoint"/>
+            <mxPoint x="270" y="1500" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc5-m6" value="完了表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="1520" as="sourcePoint"/>
+            <mxPoint x="110" y="1520" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC6: SHIPPED -->
+        <mxCell id="uc6-title" value="UC6: 出荷完了登録 (READY → SHIPPED)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1580" width="500" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC6 Lifelines -->
+        <mxCell id="uc6-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1620" width="100" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc6-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="190" y="1620" width="100" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc6-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1620" width="130" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc6-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1620" width="100" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc6-ll-kafka" value="Kafka" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1620" width="100" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc6-ll-order" value="Order Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="820" y="1620" width="120" height="280" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC6 Messages -->
+        <mxCell id="uc6-m1" value="出荷完了登録" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="90" y="1710" as="sourcePoint"/>
+            <mxPoint x="240" y="1710" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m2" value="PUT /shippings/{order_id} (SHIPPED)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="240" y="1740" as="sourcePoint"/>
+            <mxPoint x="405" y="1740" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m3" value="ステータス更新" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="405" y="1770" as="sourcePoint"/>
+            <mxPoint x="570" y="1770" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m4" value="更新結果" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="570" y="1800" as="sourcePoint"/>
+            <mxPoint x="405" y="1800" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m5" value="SHIPPING_COMPLETED発行" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="405" y="1830" as="sourcePoint"/>
+            <mxPoint x="720" y="1830" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m6" value="イベント通知" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="720" y="1850" as="sourcePoint"/>
+            <mxPoint x="880" y="1850" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m7" value="完了レスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="405" y="1865" as="sourcePoint"/>
+            <mxPoint x="240" y="1865" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc6-m8" value="完了表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="240" y="1880" as="sourcePoint"/>
+            <mxPoint x="90" y="1880" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC7: Cancel -->
+        <mxCell id="uc7-title" value="UC7: 出荷前キャンセル" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1940" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC7 Lifelines -->
+        <mxCell id="uc7-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1980" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc7-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="1980" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc7-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1980" width="130" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc7-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="570" y="1980" width="100" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC7 Messages -->
+        <mxCell id="uc7-m1" value="キャンセル実行" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="110" y="2060" as="sourcePoint"/>
+            <mxPoint x="270" y="2060" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc7-m2" value="PUT /shippings/{order_id} (CANCELLED)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="270" y="2090" as="sourcePoint"/>
+            <mxPoint x="445" y="2090" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc7-m3" value="ステータス更新" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="445" y="2120" as="sourcePoint"/>
+            <mxPoint x="620" y="2120" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc7-m4" value="更新結果" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="2150" as="sourcePoint"/>
+            <mxPoint x="445" y="2150" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc7-m5" value="完了レスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="2180" as="sourcePoint"/>
+            <mxPoint x="270" y="2180" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc7-m6" value="完了表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="2200" as="sourcePoint"/>
+            <mxPoint x="110" y="2200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC8: Return -->
+        <mxCell id="uc8-title" value="UC8: 返送登録 (SHIPPED → RETURNED)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="2260" width="400" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC8 Lifelines -->
+        <mxCell id="uc8-ll-user" value="ユーザー" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="2300" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc8-ll-ui" value="UI" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="220" y="2300" width="100" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc8-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="2300" width="130" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc8-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="570" y="2300" width="100" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC8 Messages -->
+        <mxCell id="uc8-m1" value="返送登録" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="110" y="2380" as="sourcePoint"/>
+            <mxPoint x="270" y="2380" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc8-m2" value="PUT /shippings/{order_id} (RETURNED)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="270" y="2410" as="sourcePoint"/>
+            <mxPoint x="445" y="2410" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc8-m3" value="ステータス更新" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="445" y="2440" as="sourcePoint"/>
+            <mxPoint x="620" y="2440" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc8-m4" value="更新結果" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="2470" as="sourcePoint"/>
+            <mxPoint x="445" y="2470" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc8-m5" value="完了レスポンス" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="445" y="2500" as="sourcePoint"/>
+            <mxPoint x="270" y="2500" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc8-m6" value="完了表示" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="2520" as="sourcePoint"/>
+            <mxPoint x="110" y="2520" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UC9: Order Cancelled Event -->
+        <mxCell id="uc9-title" value="UC9: 注文キャンセルイベントで発送キャンセル" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="2580" width="500" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC9 Lifelines -->
+        <mxCell id="uc9-ll-order" value="Order Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="2620" width="120" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc9-ll-kafka" value="Kafka" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="240" y="2620" width="120" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc9-ll-api" value="API (Shipping)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="2620" width="130" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc9-ll-db" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;rounded=1;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=12;align=center;" vertex="1" parent="1">
+          <mxGeometry x="620" y="2620" width="100" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- UC9 Messages -->
+        <mxCell id="uc9-m1" value="ORDER_CANCELLED発行" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="120" y="2680" as="sourcePoint"/>
+            <mxPoint x="300" y="2680" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc9-m2" value="イベント購読" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="300" y="2710" as="sourcePoint"/>
+            <mxPoint x="485" y="2710" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uc9-m3" value="発送キャンセル(CANCELLED)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="80" relative="1" as="geometry">
+            <mxPoint x="485" y="2740" as="sourcePoint"/>
+            <mxPoint x="670" y="2740" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

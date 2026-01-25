@@ -88,3 +88,5 @@ docs/plan
 
 # dotenv files
 .env
+apps/api/.env
+.claude
