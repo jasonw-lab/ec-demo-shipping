@@ -1,0 +1,27 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { QueryProvider } from "@/lib/query-provider";
+import { Toaster } from "@/components/ui/sonner";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "発送管理システム",
+  description: "Shipping Management System for EC Demo",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="ja">
+      <body className={inter.className}>
+        <QueryProvider>{children}</QueryProvider>
+        <Toaster richColors position="top-right" />
+      </body>
+    </html>
+  );
+}
