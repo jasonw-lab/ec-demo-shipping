@@ -1,8 +1,12 @@
 // Shipping UI components
-// These will be implemented in issue-006 and issue-007
 
-// Placeholder exports
-// export { ShippingTable } from './shipping-table';
-// export { ShippingFilters } from './shipping-filters';
-// export { ShippingDetailSheet } from './shipping-detail-sheet';
-// export { StatusBadge } from './status-badge';
+export { ShippingList } from "./shipping-list";
+export { ShippingTable } from "./shipping-table";
+export { FilterBar } from "./filter-bar";
+export { StatusBadge } from "./status-badge";
+export { Pagination } from "./pagination";
+export { ShippingDetailSheet } from "./shipping-detail-sheet";
+export { ShippingInfo } from "./shipping-info";
+export { ShipForm } from "./ship-form";
+export { TrackingLink } from "./tracking-link";
+export { StatusActionButton } from "./status-action-button";

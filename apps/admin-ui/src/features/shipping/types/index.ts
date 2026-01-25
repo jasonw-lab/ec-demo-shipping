@@ -1,5 +1,4 @@
 // Shipping domain types
-// These will be implemented in issue-003 (API) and issue-006 (UI)
 
 export interface Shipping {
   id: number;
@@ -46,4 +45,22 @@ export interface ShippingSummary {
   ready: number;
   shipped_today: number;
   returned: number;
+}
+
+export interface UpdateShippingRequest {
+  status: ShippingStatus;
+  carrier?: string;
+  tracking_number?: string;
+  version: number;
+}
+
+export interface ValidationError {
+  field: string;
+  reason: string;
+}
+
+export interface ApiError {
+  status: number;
+  message: string;
+  errors?: ValidationError[];
 }

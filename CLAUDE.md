@@ -88,3 +88,52 @@ apps/api/
 
 - **Backend**: Go 1.21+, Gin, GORM, Kafka, MySQL/PostgreSQL
 - **Frontend**: Next.js (App Router), shadcn/ui, Tailwind CSS, TanStack Table
+
+## Claude CLI Issue対応フロー
+
+### 1. ブランチ作成
+```bash
+git checkout feature/init-app-base
+git checkout -b feature/issue-<番号>-<概要>
+```
+
+### 2. 実装
+- Issue ファイル (`docs/issues/issue-XXX-*.md`) を確認
+- 1 Issue = 1 ブランチで対応
+- コミットメッセージに Issue 番号を含める
+
+### 3. テスト・ビルド確認
+```bash
+# Backend
+cd apps/api && go test ./... && go build ./...
+
+# Frontend
+cd apps/admin-ui && npm run build
+```
+
+### 3.5. 動作確認（ユーザー目視）
+- **テスト・ビルド完了後、一旦停止する**
+- ユーザーが目視で動作確認を行う
+- **直接コミットは行わない** - ユーザーの確認・承認を待つ
+
+### 4. コミット・プッシュ
+```bash
+git add <files>
+git commit -m "feat(scope): description (issue-XXX)"
+git push -u origin feature/issue-XXX-description
+```
+
+### 5. PR作成（Claude CLI で実行）
+```bash
+gh pr create --title "feat(scope): description (issue-XXX)" \
+  --body "## Summary\n- ...\n\n## Test plan\n- [ ] ..." \
+  --base feature/init-app-base
+```
+
+### 6. PR承認・マージ（GitHub Web UI で実施）
+- Claude CLI では PR 作成まで
+- 承認・マージは GitHub Web UI で手動実施
+
+### Rate Limit 対策
+- 不要な API 呼び出しを減らす
+- 複数コマンドは並列実行でまとめる
