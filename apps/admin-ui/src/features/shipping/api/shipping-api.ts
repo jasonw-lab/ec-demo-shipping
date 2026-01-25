@@ -2,6 +2,7 @@ import type {
   Shipping,
   ShippingListParams,
   ShippingListResponse,
+  ShippingSummary,
   UpdateShippingRequest,
   ApiError,
 } from "../types";
@@ -71,6 +72,18 @@ export async function updateShipping(
       errors: errorData.errors,
     };
     throw error;
+  }
+
+  return response.json();
+}
+
+export async function fetchSummary(): Promise<ShippingSummary> {
+  const url = `${API_BASE_URL}/shippings/summary`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch summary: ${response.status}`);
   }
 
   return response.json();

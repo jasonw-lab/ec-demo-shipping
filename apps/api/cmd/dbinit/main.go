@@ -7,9 +7,17 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if path := os.Getenv("ENV_FILE"); path != "" {
+		_ = godotenv.Load(path)
+	} else {
+		_ = godotenv.Load(".env")
+		_ = godotenv.Load("apps/api/.env")
+	}
+
 	host := getEnv("DB_HOST", "192.168.1.199")
 	port := getEnv("DB_PORT", "3307")
 	user := getEnv("DB_USER", "root")

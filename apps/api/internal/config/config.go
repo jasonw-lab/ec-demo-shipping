@@ -28,6 +28,7 @@ type DatabaseConfig struct {
 
 // Load loads configuration from environment variables with defaults
 func Load() *Config {
+	loadDotEnv()
 	return &Config{
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
