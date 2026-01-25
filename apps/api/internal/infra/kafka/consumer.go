@@ -14,6 +14,7 @@ type Consumer struct {
 	config       *config.KafkaConfig
 	handler      *OrderEventHandler
 	client       sarama.ConsumerGroup
+	producer     sarama.SyncProducer
 	ready        chan bool
 	ctx          context.Context
 	cancel       context.CancelFunc
@@ -28,8 +29,19 @@ func NewConsumer(cfg *config.KafkaConfig, handler *OrderEventHandler) (*Consumer
 	saramaConfig.Consumer.Offsets.Initial = sarama.OffsetNewest
 	saramaConfig.Consumer.Return.Errors = true
 
+	// Producer config for DLQ
+	saramaConfig.Producer.Return.Successes = true
+	saramaConfig.Producer.RequiredAcks = sarama.WaitForAll
+
 	client, err := sarama.NewConsumerGroup(cfg.Brokers, cfg.ConsumerGroup, saramaConfig)
 	if err != nil {
+		return nil, err
+	}
+
+	// Create DLQ producer
+	producer, err := sarama.NewSyncProducer(cfg.Brokers, saramaConfig)
+	if err != nil {
+		client.Close()
 		return nil, err
 	}
 
@@ -39,6 +51,7 @@ func NewConsumer(cfg *config.KafkaConfig, handler *OrderEventHandler) (*Consumer
 		config:       cfg,
 		handler:      handler,
 		client:       client,
+		producer:     producer,
 		ready:        make(chan bool),
 		ctx:          ctx,
 		cancel:       cancel,
@@ -72,6 +85,11 @@ func (c *Consumer) Start() error {
 // Stop stops the consumer
 func (c *Consumer) Stop() error {
 	c.cancel()
+	if c.producer != nil {
+		if err := c.producer.Close(); err != nil {
+			log.Printf("[WARN] Error closing DLQ producer: %v", err)
+		}
+	}
 	return c.client.Close()
 }
 
@@ -140,18 +158,24 @@ func (c *Consumer) processMessage(session sarama.ConsumerGroupSession, message *
 
 // sendToDLQ sends a failed message to the Dead Letter Queue
 func (c *Consumer) sendToDLQ(message *sarama.ConsumerMessage, err error) {
-	// In a production system, this would produce to the DLQ topic
-	// For now, just log the failure
-	log.Printf("[DLQ] Message sent to DLQ: topic=%s partition=%d offset=%d error=%v",
-		message.Topic, message.Partition, message.Offset, err)
+	dlqMessage := &sarama.ProducerMessage{
+		Topic: c.config.DLQTopic,
+		Value: sarama.ByteEncoder(message.Value),
+		Headers: []sarama.RecordHeader{
+			{Key: []byte("error"), Value: []byte(err.Error())},
+			{Key: []byte("original_topic"), Value: []byte(message.Topic)},
+			{Key: []byte("original_partition"), Value: []byte(string(rune(message.Partition)))},
+			{Key: []byte("original_offset"), Value: []byte(string(rune(message.Offset)))},
+		},
+	}
 
-	// TODO: Implement actual DLQ producer when needed
-	// producer.SendMessage(&sarama.ProducerMessage{
-	//     Topic: c.config.DLQTopic,
-	//     Value: sarama.ByteEncoder(message.Value),
-	//     Headers: []sarama.RecordHeader{
-	//         {Key: []byte("error"), Value: []byte(err.Error())},
-	//         {Key: []byte("original_topic"), Value: []byte(message.Topic)},
-	//     },
-	// })
+	partition, offset, sendErr := c.producer.SendMessage(dlqMessage)
+	if sendErr != nil {
+		log.Printf("[ERROR] Failed to send message to DLQ: topic=%s partition=%d offset=%d error=%v",
+			message.Topic, message.Partition, message.Offset, sendErr)
+		return
+	}
+
+	log.Printf("[DLQ] Message sent to DLQ: dlq_topic=%s dlq_partition=%d dlq_offset=%d original_topic=%s original_partition=%d original_offset=%d error=%v",
+		c.config.DLQTopic, partition, offset, message.Topic, message.Partition, message.Offset, err)
 }

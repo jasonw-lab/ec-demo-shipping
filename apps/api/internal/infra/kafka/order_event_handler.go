@@ -4,10 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strings"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/domain"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/infra/repository"
 	"gorm.io/gorm"
+)
+
+const (
+	// MySQL error code for duplicate entry
+	mysqlDuplicateEntryCode = 1062
 )
 
 // OrderEventHandler handles order events from Kafka
@@ -75,6 +82,11 @@ func (h *OrderEventHandler) handleOrderPaid(message []byte) error {
 	}
 
 	if err := h.repo.Create(shipping); err != nil {
+		// Handle duplicate-key error as idempotent success (race condition with concurrent events)
+		if isDuplicateKeyError(err) {
+			log.Printf("[INFO] Duplicate key for order %s, treating as idempotent success", event.OrderID)
+			return nil
+		}
 		log.Printf("[ERROR] Failed to create shipping for order %s: %v", event.OrderID, err)
 		return err
 	}
@@ -96,4 +108,15 @@ func (e *ValidationError) Error() string {
 func IsValidationError(err error) bool {
 	var validationErr *ValidationError
 	return errors.As(err, &validationErr)
+}
+
+// isDuplicateKeyError checks if an error is a MySQL duplicate key error
+func isDuplicateKeyError(err error) bool {
+	var mysqlErr *mysql.MySQLError
+	if errors.As(err, &mysqlErr) {
+		return mysqlErr.Number == mysqlDuplicateEntryCode
+	}
+	// Also check for GORM wrapped error message as fallback
+	return strings.Contains(err.Error(), "Duplicate entry") ||
+		strings.Contains(err.Error(), "UNIQUE constraint failed")
 }

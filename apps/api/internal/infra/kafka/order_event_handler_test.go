@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/domain"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/infra/repository"
 	"github.com/stretchr/testify/assert"
@@ -159,6 +160,27 @@ func TestHandleOrderPaid_DBError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.False(t, IsValidationError(err)) // Should be retryable
+}
+
+func TestHandleOrderPaid_DuplicateKeyIdempotent(t *testing.T) {
+	repo := NewMockShippingRepository()
+	// Simulate MySQL duplicate key error (race condition between FindByOrderID and Create)
+	repo.createErr = &mysql.MySQLError{Number: 1062, Message: "Duplicate entry 'ORD-001' for key 'idx_order_id'"}
+	handler := NewOrderEventHandler(repo)
+
+	message := []byte(`{
+		"event_type": "ORDER_PAID",
+		"order_id": "ORD-001",
+		"customer": {
+			"name": "山田太郎",
+			"address": {"postal_code": "150-0001", "prefecture": "東京都", "city": "渋谷区", "street": "神宮前1-2-3"}
+		}
+	}`)
+
+	err := handler.Handle(message)
+
+	// Should succeed (idempotent) even with duplicate key error
+	assert.NoError(t, err)
 }
 
 func TestHandleUnknownEvent(t *testing.T) {
