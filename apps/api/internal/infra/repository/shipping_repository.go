@@ -20,6 +20,7 @@ type ShippingSummary struct {
 type ShippingRepository interface {
 	FindAll(filter *ShippingFilter) ([]domain.Shipping, int64, error)
 	FindByOrderID(orderID string) (*domain.Shipping, error)
+	Create(shipping *domain.Shipping) error
 	Update(shipping *domain.Shipping) error
 	GetSummary(todayStart, todayEnd time.Time) (*ShippingSummary, error)
 }
@@ -93,6 +94,11 @@ func (r *shippingRepository) FindByOrderID(orderID string) (*domain.Shipping, er
 	}
 
 	return &shipping, nil
+}
+
+// Create creates a new shipping record
+func (r *shippingRepository) Create(shipping *domain.Shipping) error {
+	return r.db.Create(shipping).Error
 }
 
 // Update updates a shipping record with optimistic locking
