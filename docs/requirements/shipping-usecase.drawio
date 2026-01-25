@@ -1,0 +1,67 @@
+<mxfile host="app.diagrams.net" modified="2025-09-04T00:00:00.000Z" agent="Codex" version="20.8.16" type="device">
+  <diagram id="shipping-usecase" name="Page-1">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="system" value="Shipping Service" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="40" width="680" height="420" as="geometry"/>
+        </mxCell>
+        <mxCell id="actor-operator" value="Shipping Operator" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="40" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="actor-order" value="Order Service" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="170" width="40" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-create" value="Create Shipping\n(from Order event)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="90" width="170" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-list" value="View Shipping List" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="100" width="170" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-detail" value="View Shipping Detail" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="180" width="170" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-summary" value="Get Dashboard Summary" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="260" width="170" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-ready" value="Issue Shipping Instruction\n(CREATED -> READY)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="140" width="190" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-ship" value="Register Shipment\n(READY -> SHIPPED)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="220" width="190" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-cancel" value="Cancel Shipping\n(before shipped)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="300" width="190" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="uc-return" value="Register Return\n(SHIPPED -> RETURNED)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="300" width="190" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-order-create" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-order" target="uc-create">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-list" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-list">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-detail" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-detail">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-summary" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-summary">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-ready" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-ready">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-ship" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-ship">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-cancel" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-cancel">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-operator-return" style="endArrow=none;html=1;strokeColor=#000000;" edge="1" parent="1" source="actor-operator" target="uc-return">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

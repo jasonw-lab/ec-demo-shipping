@@ -26,6 +26,8 @@ go test ./...        # Run all tests
 go test ./internal/service/...  # Run specific package tests
 ```
 
+The API auto-loads environment variables from `.env` (best-effort). You can override with `ENV_FILE=/path/to/.env`.
+
 ## Architecture
 
 ```
