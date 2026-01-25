@@ -16,6 +16,7 @@ type ShippingService interface {
 	GetByOrderID(orderID string) (*domain.Shipping, error)
 	Update(orderID string, req *UpdateShippingRequest) (*domain.Shipping, error)
 	GetSummary() (*repository.ShippingSummary, error)
+	GetPriorityShippings(limit int) ([]domain.Shipping, error)
 }
 
 // UpdateShippingRequest represents the request body for updating a shipping
@@ -239,3 +240,14 @@ func (s *shippingService) GetSummary() (*repository.ShippingSummary, error) {
 
 	return s.repo.GetSummary(todayStart, todayEnd)
 }
+
+// GetPriorityShippings retrieves priority shipments requiring attention
+func (s *shippingService) GetPriorityShippings(limit int) ([]domain.Shipping, error) {
+	// Set default limit if not provided
+	if limit <= 0 {
+		limit = 5
+	}
+
+	return s.repo.FindPriority(limit)
+}
+

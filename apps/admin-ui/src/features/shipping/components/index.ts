@@ -12,3 +12,4 @@ export { TrackingLink } from "./tracking-link";
 export { StatusActionButton } from "./status-action-button";
 export { Dashboard } from "./dashboard";
 export { SummaryCard } from "./summary-card";
+export { PriorityShippingsList } from "./priority-shipments-list";

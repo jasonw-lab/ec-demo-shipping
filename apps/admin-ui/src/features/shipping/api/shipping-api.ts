@@ -88,3 +88,17 @@ export async function fetchSummary(): Promise<ShippingSummary> {
 
   return response.json();
 }
+
+export async function fetchPriorityShippings(limit: number = 5): Promise<Shipping[]> {
+  const url = `${API_BASE_URL}/shippings/priority?limit=${limit}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch priority shippings: ${response.status}`);
+  }
+
+  const json = await response.json();
+  return json.data;
+}
+

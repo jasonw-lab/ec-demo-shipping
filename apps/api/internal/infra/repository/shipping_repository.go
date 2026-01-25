@@ -23,6 +23,7 @@ type ShippingRepository interface {
 	Create(shipping *domain.Shipping) error
 	Update(shipping *domain.Shipping) error
 	GetSummary(todayStart, todayEnd time.Time) (*ShippingSummary, error)
+	FindPriority(limit int) ([]domain.Shipping, error)
 }
 
 // ShippingFilter holds filter parameters for listing shippings
@@ -154,3 +155,34 @@ func (r *shippingRepository) GetSummary(todayStart, todayEnd time.Time) (*Shippi
 
 	return &summary, nil
 }
+
+// FindPriority retrieves priority shipments requiring attention
+// Priority order: RETURNED (all) → CREATED (>24h) → READY (oldest first)
+func (r *shippingRepository) FindPriority(limit int) ([]domain.Shipping, error) {
+	var shippings []domain.Shipping
+
+	// Calculate 24 hours ago
+	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+
+	// Query with priority ordering using CASE statement
+	err := r.db.Model(&domain.Shipping{}).
+		Where("status IN (?, ?, ?)", domain.StatusReturned, domain.StatusCreated, domain.StatusReady).
+		Order(gorm.Expr(`
+			CASE
+				WHEN status = ? THEN 1
+				WHEN status = ? AND created_at < ? THEN 2
+				WHEN status = ? THEN 3
+				ELSE 4
+			END,
+			updated_at ASC
+		`, domain.StatusReturned, domain.StatusCreated, twentyFourHoursAgo, domain.StatusReady)).
+		Limit(limit).
+		Find(&shippings).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return shippings, nil
+}
+

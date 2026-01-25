@@ -20,6 +20,7 @@ export {
   useShippingDetail,
   useUpdateShipping,
   useSummary,
+  usePriorityShippings,
 } from "./api";
 
 // Components
@@ -36,4 +37,5 @@ export {
   StatusActionButton,
   Dashboard,
   SummaryCard,
+  PriorityShippingsList,
 } from "./components";

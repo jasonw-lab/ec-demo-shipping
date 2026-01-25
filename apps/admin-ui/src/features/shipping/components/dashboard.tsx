@@ -2,6 +2,7 @@
 
 import { useSummary } from "../api";
 import { SummaryCard } from "./summary-card";
+import { PriorityShippingsList } from "./priority-shipments-list";
 
 export function Dashboard() {
   const { data, isLoading, error } = useSummary();
@@ -42,6 +43,8 @@ export function Dashboard() {
           isLoading={isLoading}
         />
       </div>
+
+      <PriorityShippingsList />
     </div>
   );
 }

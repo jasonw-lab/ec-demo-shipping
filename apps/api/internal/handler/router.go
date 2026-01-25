@@ -123,6 +123,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	// Shipping endpoints
 	router.GET("/shippings", shippingHandler.List)
 	router.GET("/shippings/summary", shippingHandler.Summary) // Summary must be before :order_id
+	router.GET("/shippings/priority", shippingHandler.Priority) // Priority must be before :order_id
 	router.GET("/shippings/:order_id", shippingHandler.Get)
 	router.PUT("/shippings/:order_id", shippingHandler.Update)
 

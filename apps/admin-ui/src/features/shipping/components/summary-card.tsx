@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ShippingStatus } from "../types";
 
@@ -84,6 +85,9 @@ export function SummaryCard({ type, count, isLoading }: SummaryCardProps) {
   // Special case: READY with 0 count shows positive message
   const showPositiveMessage = type === "ready" && count === 0 && !isLoading;
 
+  // Show warning for RETURNED status when count > 0
+  const showWarning = type === "returned" && count > 0 && !isLoading;
+
   return (
     <Card
       className={cn(
@@ -96,6 +100,9 @@ export function SummaryCard({ type, count, isLoading }: SummaryCardProps) {
         <CardTitle className={cn("text-sm font-medium", config.colorClasses.title)}>
           {config.label}
         </CardTitle>
+        {showWarning && (
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+        )}
       </CardHeader>
       <CardContent>
         {isLoading ? (
