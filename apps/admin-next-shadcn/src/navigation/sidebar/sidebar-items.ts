@@ -12,9 +12,11 @@ import {
   type LucideIcon,
   Mail,
   MessageSquare,
+  Package,
   ReceiptText,
   ShoppingBag,
   SquareArrowUpRight,
+  Truck,
   Users,
 } from "lucide-react";
 
@@ -44,10 +46,36 @@ export interface NavGroup {
 }
 
 export const sidebarItems: NavGroup[] = [
+  // {
+  //   id: 0,
+  //   label: "発送管理",
+  //   items: [
+  //     {
+  //       title: "ダッシュボード",
+  //       url: "/dashboard/shipping",
+  //       icon: Truck,
+  //     },
+  //     {
+  //       title: "発送一覧",
+  //       url: "/dashboard/shipping/list",
+  //       icon: Package,
+  //     },
+  //   ],
+  // },
   {
     id: 1,
     label: "Dashboards",
     items: [
+      {
+        title: "ダッシュボード",
+        url: "/dashboard/shipping",
+        icon: Truck,
+      },
+      {
+        title: "発送一覧",
+        url: "/dashboard/shipping/list",
+        icon: Package,
+      },
       {
         title: "Default",
         url: "/dashboard/default",

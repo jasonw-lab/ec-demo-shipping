@@ -16,6 +16,8 @@
 - **技術前提:**
   - Next.js (App Router)
   - shadcn/ui (Cards, Tables, Sheets, Forms)
+  - 複数UIベース並行評価中（Horizon UI / Square UI / Next Shadcn Dashboard）
+  - **色・配色は各UIベースのテーマに従う**（具体的な色指定なし）
   - Go Backend API（Shipping Service）
 
 ---
@@ -92,10 +94,11 @@ Dashboard Layout
 | Action | 操作 | Edit（Pencil Icon） |
 
 #### ステータスバッジ配色
-- CREATED: Gray
-- READY: Attention（Primary / Orange）
-- SHIPPED: Green
-- RETURNED: Red
+**各UIベースのテーマカラーに従う**（具体的な色指定なし）
+- CREATED: デフォルト
+- READY: Primary / 注意喚起色
+- SHIPPED: 成功色
+- RETURNED: 警告/エラー色
 
 ---
 
@@ -184,7 +187,7 @@ Sidebar
 **UI/UX 担当視点での補強ポイント**を定義する。
 
 ### 10.1 認知負荷を下げる工夫（Visual Hierarchy）
-- 配送業者は文字列のみでなく、簡易アイコン（例：トラック）＋色で表現する。
+- 配送業者は文字列のみでなく、簡易アイコン（例：トラック）で表現する（色は各UIベースのテーマに従う）。
 - 追跡番号・注文IDなどの識別子は等幅フォント（`font-mono`）を使用する。
 
 ### 10.2 オペレーション効率を高めるマイクロインタラクション
