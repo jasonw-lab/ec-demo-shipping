@@ -23,6 +23,7 @@ type ShippingRepository interface {
 	Create(shipping *domain.Shipping) error
 	Update(shipping *domain.Shipping) error
 	GetSummary(todayStart, todayEnd time.Time) (*ShippingSummary, error)
+	FindPriority(limit int, createdThreshold time.Time) ([]domain.Shipping, error)
 }
 
 // ShippingFilter holds filter parameters for listing shippings
@@ -153,4 +154,31 @@ func (r *shippingRepository) GetSummary(todayStart, todayEnd time.Time) (*Shippi
 	}
 
 	return &summary, nil
+}
+
+// FindPriority retrieves priority shippings based on business rules:
+// 1. RETURNED (all) - highest priority
+// 2. CREATED (older than threshold) - stale unprocessed
+// 3. READY (oldest first) - waiting for shipment
+func (r *shippingRepository) FindPriority(limit int, createdThreshold time.Time) ([]domain.Shipping, error) {
+	var shippings []domain.Shipping
+
+	// Use UNION to combine priority groups with proper ordering
+	// Priority: RETURNED > CREATED (stale) > READY (by updated_at)
+	err := r.db.Raw(`
+		(SELECT *, 1 as priority FROM shippings WHERE status = ? ORDER BY updated_at ASC)
+		UNION ALL
+		(SELECT *, 2 as priority FROM shippings WHERE status = ? AND created_at < ? ORDER BY created_at ASC)
+		UNION ALL
+		(SELECT *, 3 as priority FROM shippings WHERE status = ? ORDER BY updated_at ASC)
+		ORDER BY priority ASC, updated_at ASC
+		LIMIT ?
+	`, domain.StatusReturned, domain.StatusCreated, createdThreshold, domain.StatusReady, limit).
+		Scan(&shippings).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return shippings, nil
 }

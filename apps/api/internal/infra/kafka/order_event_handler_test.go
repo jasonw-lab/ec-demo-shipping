@@ -53,6 +53,9 @@ func (m *MockShippingRepository) Update(shipping *domain.Shipping) error {
 func (m *MockShippingRepository) GetSummary(start, end time.Time) (*repository.ShippingSummary, error) {
 	return nil, nil
 }
+func (m *MockShippingRepository) FindPriority(limit int, createdThreshold time.Time) ([]domain.Shipping, error) {
+	return nil, nil
+}
 
 func TestHandleOrderPaid_NewOrder(t *testing.T) {
 	repo := NewMockShippingRepository()

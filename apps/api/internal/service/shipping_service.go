@@ -16,6 +16,7 @@ type ShippingService interface {
 	GetByOrderID(orderID string) (*domain.Shipping, error)
 	Update(orderID string, req *UpdateShippingRequest) (*domain.Shipping, error)
 	GetSummary() (*repository.ShippingSummary, error)
+	GetPriorityShippings(limit int) ([]domain.Shipping, error)
 }
 
 // UpdateShippingRequest represents the request body for updating a shipping
@@ -238,4 +239,20 @@ func (s *shippingService) GetSummary() (*repository.ShippingSummary, error) {
 	todayEnd := todayStart.AddDate(0, 0, 1)
 
 	return s.repo.GetSummary(todayStart, todayEnd)
+}
+
+// GetPriorityShippings retrieves priority shippings for dashboard
+// Priority rules:
+// 1. RETURNED (all) - highest priority
+// 2. CREATED (older than 24h) - stale unprocessed
+// 3. READY (oldest first) - waiting for shipment
+func (s *shippingService) GetPriorityShippings(limit int) ([]domain.Shipping, error) {
+	if limit <= 0 {
+		limit = 5
+	}
+
+	// Calculate threshold for stale CREATED items (24 hours ago)
+	createdThreshold := time.Now().Add(-24 * time.Hour)
+
+	return s.repo.FindPriority(limit, createdThreshold)
 }
