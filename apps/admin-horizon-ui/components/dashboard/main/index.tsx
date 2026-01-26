@@ -1,32 +1,24 @@
-/*eslint-disable*/
 'use client';
 
-import MainChart from '@/components/dashboard/main/cards/MainChart';
-import MainDashboardTable from '@/components/dashboard/main/cards/MainDashboardTable';
 import DashboardLayout from '@/components/layout';
-import tableDataUserReports from '@/variables/tableDataUserReports';
+import { Dashboard } from '@/features/shipping';
 import { User } from '@supabase/supabase-js';
+
 interface Props {
   user: User | null | undefined;
   userDetails: { [x: string]: any } | null | any;
 }
 
-export default function Settings(props: Props) {
+export default function MainDashboard(props: Props) {
   return (
     <DashboardLayout
       user={props.user}
       userDetails={props.userDetails}
-      title="Subscription Page"
-      description="Manage your subscriptions"
+      title="発送管理ダッシュボード"
+      description="発送状況の概要を確認"
     >
-      <div className="h-full w-full">
-        <div className="mb-5 flex gap-5 flex-col xl:flex-row w-full">
-          <MainChart />
-        </div>
-        {/* Conversion and talbes*/}
-        <div className="h-full w-full rounded-lg ">
-          <MainDashboardTable tableData={tableDataUserReports} />
-        </div>
+      <div className="h-full w-full max-w-full">
+        <Dashboard />
       </div>
     </DashboardLayout>
   );

@@ -1,8 +1,8 @@
-import Settings from '@/components/dashboard/settings';
+import Shipments from '@/components/dashboard/shipments';
 // TODO: Re-enable authentication after testing
 // import { redirect } from 'next/navigation';
-// import { createClient } from '@/utils/supabase/server';
 // import { getUserDetails, getUser } from '@/utils/supabase/queries';
+// import { createClient } from '@/utils/supabase/server';
 
 // TODO: Re-enable authentication after testing - mock user for development
 const mockUser = {
@@ -19,7 +19,7 @@ const mockUserDetails = {
   avatar_url: null
 };
 
-export default async function SettingsPage() {
+export default async function ShipmentsPage() {
   // TODO: Re-enable authentication after testing
   // const supabase = await createClient();
   // const [user, userDetails] = await Promise.all([
@@ -29,7 +29,7 @@ export default async function SettingsPage() {
   // if (!user) {
   //   return redirect('/dashboard/signin');
   // }
-  // return <Settings userDetails={userDetails} user={user} />;
+  // return <Shipments user={user} userDetails={userDetails} />;
 
-  return <Settings userDetails={mockUserDetails} user={mockUser} />;
+  return <Shipments user={mockUser} userDetails={mockUserDetails} />;
 }
