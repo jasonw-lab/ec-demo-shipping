@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { useShippingList } from "../api";
 import type { Carrier, ShippingStatus } from "../types";
@@ -11,8 +12,20 @@ import { ShippingDetailSheet } from "./shipping-detail-sheet";
 
 const DEFAULT_PAGE_SIZE = 20;
 
+const validStatuses: ShippingStatus[] = [
+  "CREATED",
+  "READY",
+  "SHIPPED",
+  "DELIVERED",
+  "RETURNED",
+  "CANCELLED",
+];
+
 export function ShippingList() {
-  // Initialize with READY as default status
+  const searchParams = useSearchParams();
+  const urlStatus = searchParams.get("status");
+
+  // Initialize with URL param or READY as default status
   const [status, setStatus] = useState<ShippingStatus | "">("");
   const [carrier, setCarrier] = useState<Carrier | "">("");
   const [keyword, setKeyword] = useState("");
@@ -23,13 +36,17 @@ export function ShippingList() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Set default filter to READY on initial load
+  // Set initial filter from URL param or default to READY
   useEffect(() => {
     if (!isInitialized) {
-      setStatus("READY");
+      if (urlStatus && validStatuses.includes(urlStatus as ShippingStatus)) {
+        setStatus(urlStatus as ShippingStatus);
+      } else {
+        setStatus("READY");
+      }
       setIsInitialized(true);
     }
-  }, [isInitialized]);
+  }, [isInitialized, urlStatus]);
 
   const { data, isLoading, error } = useShippingList({
     status: status || undefined,

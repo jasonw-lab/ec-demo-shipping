@@ -10,3 +10,5 @@ export { ShippingInfo } from "./shipping-info";
 export { ShipForm } from "./ship-form";
 export { TrackingLink } from "./tracking-link";
 export { StatusActionButton } from "./status-action-button";
+export { Dashboard } from "./dashboard";
+export { SummaryCard } from "./summary-card";

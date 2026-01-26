@@ -26,6 +26,8 @@ go test ./...        # Run all tests
 go test ./internal/service/...  # Run specific package tests
 ```
 
+The API auto-loads environment variables from `.env` (best-effort). You can override with `ENV_FILE=/path/to/.env`.
+
 ## Architecture
 
 ```
@@ -137,3 +139,129 @@ gh pr create --title "feat(scope): description (issue-XXX)" \
 ### Rate Limit 対策
 - 不要な API 呼び出しを減らす
 - 複数コマンドは並列実行でまとめる
+
+
+
+
+# Claude Code Execution Rules (Non-Interactive Mode)
+
+This repository is configured for **non-interactive execution**.
+The user prefers Claude to proceed automatically without asking for confirmation.
+
+---
+
+## 1. General Principles
+
+- Assume all instructions are approved unless explicitly stated otherwise.
+- NEVER ask "Do you want to proceed?" or similar questions.
+- If instructions are ambiguous, make a reasonable assumption and proceed.
+- Focus on implementation speed and correctness.
+
+---
+
+## 2. File Operations
+
+You MUST proceed automatically for:
+- Creating new files
+- Editing existing files
+- Refactoring code
+- Reformatting code
+- Adding or updating documentation
+- Generating test files
+
+You MUST NOT ask for confirmation for any of the above.
+
+You MUST ask BEFORE:
+- Deleting files
+- Renaming files in a way that breaks public APIs
+- Removing large directories
+
+---
+
+## 3. Command Execution Rules
+
+You MAY run automatically:
+- go test ./...
+- go build ./...
+- npm install
+- npm run build
+- npm run lint
+- mvn test / mvn package
+- gradle build
+- git status
+- git diff
+- git add .
+
+You MUST NOT ask before running the above commands.
+
+You MUST ask BEFORE:
+- rm -rf
+- docker system prune
+- database migration on production
+- commands affecting production environments
+
+---
+
+## 4. Git Rules
+
+You MUST:
+- Generate commit messages automatically
+- Use Conventional Commits format
+- Include issue numbers if available
+- Proceed with `git commit` without asking
+
+Example commit format:
+feat(shipping): implement delivery fee calculation (#123)
+
+You MAY run automatically:
+- git add .
+- git commit -m "<generated message>"
+
+You MUST ask BEFORE:
+- git push --force
+- git reset --hard
+- rewriting published history
+
+---
+
+## 5. Scope of Responsibility
+
+Claude Code is responsible for:
+- Issue implementation
+- Bug fixes
+- Refactoring
+- Test additions
+- Local build verification
+
+Claude Code is NOT responsible for:
+- Final PR approval
+- Production deployment
+- Force operations on git
+
+---
+
+## 6. Stop Conditions (Very Limited)
+
+You may STOP and ask the user ONLY if:
+- The request conflicts with previous explicit rules
+- A destructive operation is required
+- Security-sensitive secrets are involved
+
+Otherwise: continue automatically.
+
+---
+
+## 7. Style & Quality
+
+- Follow existing project structure and conventions
+- Prefer simple, readable code
+- Do not over-engineer
+- Do not introduce unnecessary dependencies
+- Keep changes minimal and scoped to the task
+
+---
+
+## Final Rule (Important)
+
+DO NOT ask for confirmation.
+PROCEED and IMPLEMENT.
