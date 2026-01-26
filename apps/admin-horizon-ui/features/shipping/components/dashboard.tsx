@@ -2,6 +2,7 @@
 
 import { useSummary } from '../api';
 import { SummaryCard } from './summary-card';
+import { PriorityList } from './priority-list';
 
 export function Dashboard() {
   const { data, isLoading, error } = useSummary();
@@ -22,7 +23,7 @@ export function Dashboard() {
         </h2>
       </div>
 
-      <div className="flex w-full flex-col gap-6 md:flex-row">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           type="created"
           count={data?.created ?? 0}
@@ -44,6 +45,8 @@ export function Dashboard() {
           isLoading={isLoading}
         />
       </div>
+
+      <PriorityList />
     </div>
   );
 }

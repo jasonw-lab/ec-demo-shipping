@@ -2,7 +2,8 @@
 
 export { Dashboard } from './components/dashboard';
 export { SummaryCard } from './components/summary-card';
-export { useSummary, fetchSummary } from './api';
+export { PriorityList } from './components/priority-list';
+export { useSummary, usePriorityList, fetchSummary, fetchPriorityShippings } from './api';
 export type {
   Shipping,
   ShippingStatus,

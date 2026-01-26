@@ -3,7 +3,7 @@
 **作成日**: 2026-01-26  
 **優先度**: P1  
 **工数見積**: 0.5〜1日  
-**ステータス**: 🔴 未着手  
+**ステータス**: ✅ 完了  
 **前提条件**: Issue 013（レイアウトシステム統一）完了  
 **関連 ADR**: [ADR-006: Horizon UI Shadcn テンプレート採用](../adr/ADR-006-horizon-ui-adoption.md)
 
@@ -84,15 +84,15 @@ apps/admin-horizon-ui/
 
 ## ✅ 受け入れ条件
 
-- [ ] KPI カードが Horizon UI デザインで表示される
-- [ ] KPI カードクリックで適切な発送一覧に遷移する
+- [x] KPI カードが Horizon UI デザインで表示される
+- [x] KPI カードクリックで適切な発送一覧に遷移する
   - CREATED → `/shipments?status=CREATED`
   - SHIPPED TODAY → `/shipments?status=SHIPPED&date=today`
   - RETURNED → `/shipments?status=RETURNED`
-- [ ] RETURNED カードが警告表示（Horizon UI の destructive variant）される
-- [ ] 要対応発送リストが正しく表示される（最大5件、優先度ルール適用）
-- [ ] Light/Dark Mode で正常に表示される
-- [ ] レスポンシブ対応（Mobile / Tablet / Desktop）
+- [x] RETURNED カードが警告表示（Horizon UI の destructive variant）される
+- [x] 要対応発送リストが正しく表示される（最大5件、優先度ルール適用）
+- [x] Light/Dark Mode で正常に表示される
+- [x] レスポンシブ対応（Mobile / Tablet / Desktop）
 
 ---
 
