@@ -164,3 +164,21 @@ func (h *ShippingHandler) Summary(c *gin.Context) {
 	// Return summary
 	c.JSON(http.StatusOK, summary)
 }
+
+// Priority handles GET /shippings/priority
+func (h *ShippingHandler) Priority(c *gin.Context) {
+	// Parse limit parameter
+	limit := parseIntQuery(c, "limit", 5)
+
+	// Get priority shippings from service
+	shippings, err := h.service.GetPriorityShippings(limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to retrieve priority shippings",
+		})
+		return
+	}
+
+	// Return shippings array directly
+	c.JSON(http.StatusOK, shippings)
+}
