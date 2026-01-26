@@ -4,92 +4,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Shipping Service (発送管理サービス) - A microservice handling physical logistics (warehouse operations, carrier handoff, delivery tracking) for the ec-demo e-commerce platform. This is separate from order/payment flows.
+Shipping Service - EC発送管理。Go API + 複数Next.js Admin UI（並行評価中）。
 
-## Build and Development Commands
+## Build Commands
 
-### Frontend (Admin UI - Next.js)
+### Frontend
 ```bash
-cd apps/admin-ui
-npm install          # Install dependencies
-npm run dev          # Start development server
-npm run build        # Production build
-npm run lint         # Run linter
+# UI bases: admin-horizon-ui / admin-square-ui / admin-next-shadcn
+cd apps/admin-{ui-base}
+npm install && npm run dev
+npm run build
 ```
 
-### Backend (Shipping API - Go)
+### Backend
 ```bash
 cd apps/api
-go mod tidy          # Install dependencies
-go run cmd/server/main.go  # Run server
-go test ./...        # Run all tests
-go test ./internal/service/...  # Run specific package tests
+go mod tidy
+go run cmd/server/main.go
+go test ./...
 ```
 
-The API auto-loads environment variables from `.env` (best-effort). You can override with `ENV_FILE=/path/to/.env`.
+## Architecture Notes
 
-## Architecture
-
-```
-[ Admin UI (Next.js + shadcn/ui) ]
-            |
-            | REST API
-            v
-[ Shipping Service (Go / Gin + GORM) ]
-            |
-            | Kafka Events
-            v
-[ Order Service (ec-demo) ]
-```
-
-### Key Architectural Decisions (ADRs)
-
-- **ADR-001**: UI uses hybrid approach - arhamkhnz/next-shadcn-admin-dashboard for layout/skeleton + shadcn/ui Official Blocks for components
-- **ADR-002**: Backend uses Gin (HTTP framework) + GORM (ORM)
-- **ADR-003**: Frontend follows Feature-based architecture (Bulletproof React style) - see structure below
-- **ADR-004**: Kafka + Eventual Consistency for Order↔Shipping integration (not distributed transactions)
-- **ADR-005**: Optimistic Locking with `version` column - returns `409 Conflict` on mismatch
-
-### Frontend Structure (Feature-based / Bulletproof React)
-
-```
-apps/admin-ui/src/
-├── app/                  # Next.js App Router - routing/layout only, no business logic
-│   └── (dashboard)/shipments/page.tsx  # Server Component entry
-├── features/             # Business logic & domain UI
-│   └── shipping/
-│       ├── components/   # Domain-specific UI
-│       ├── api/          # Data fetching (hooks, server actions)
-│       ├── types/        # Domain types
-│       └── index.ts      # Public API (only exports used by other features)
-├── components/           # Shared domain-agnostic components
-│   ├── ui/               # shadcn/ui components
-│   └── layouts/          # Sidebar, Header
-└── lib/                  # Utilities
-```
-
-**Feature encapsulation rule**: Import from `features/<domain>/index.ts` only - no deep imports into internal files.
-
-### Backend Structure (Standard Go Layout)
-
-```
-apps/api/
-├── cmd/server/           # Application entrypoint
-└── internal/
-    ├── domain/           # Domain models
-    ├── handler/          # HTTP handlers (Gin)
-    ├── service/          # Business logic
-    └── infra/            # Repository, Kafka, external integrations
-```
-
-### Shipping Status Lifecycle
-
-`CREATED → READY → SHIPPED → DELIVERED / RETURNED`
-
-## Tech Stack
-
-- **Backend**: Go 1.21+, Gin, GORM, Kafka, MySQL/PostgreSQL
-- **Frontend**: Next.js (App Router), shadcn/ui, Tailwind CSS, TanStack Table
+- **ADR-006**: 3つのshadcn/uiベース並行評価中（Horizon UI / Square UI / Next Shadcn Dashboard）
+- 各UIベースの**既存コンポーネント優先利用**（新規作成は最小限）
+- 詳細: `docs/adr/ADR-006-horizon-ui-adoption.md`, `docs/issues/ui-refactoring-common.md`
 
 ## Claude CLI Issue対応フロー
 
@@ -106,11 +45,8 @@ git checkout -b feature/issue-<番号>-<概要>
 
 ### 3. テスト・ビルド確認
 ```bash
-# Backend
 cd apps/api && go test ./... && go build ./...
-
-# Frontend
-cd apps/admin-ui && npm run build
+cd apps/admin-{ui-base} && npm run build  # 対象UIベースを指定
 ```
 
 ### 3.5. 動作確認（ユーザー目視）
