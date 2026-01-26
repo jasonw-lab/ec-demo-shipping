@@ -68,6 +68,22 @@ apps/admin-ui/src/
 └── lib/                  # Utilities
 ```
 
+horizon-ui based admin UI is in a separate directory:
+``` 
+apps/admin-horizon-ui
+```
+
+square-ui based admin UI is in a separate directory:
+``` 
+apps/admin-square-ui 
+```
+
+next-shadcn-dashboard based admin UI is in a separate directory:
+``` 
+apps/admin-next-shadcn
+```
+
+
 **Feature encapsulation rule**: Import from `features/<domain>/index.ts` only - no deep imports into internal files.
 
 ### Backend Structure (Standard Go Layout)
