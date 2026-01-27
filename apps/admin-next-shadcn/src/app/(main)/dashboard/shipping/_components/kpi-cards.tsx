@@ -17,6 +17,7 @@ interface KpiCardItem {
   icon: React.ReactNode;
   href: string;
   variant?: "default" | "destructive";
+  colorClass?: string;
 }
 
 export function KpiCards({ summary }: KpiCardsProps) {
@@ -26,18 +27,21 @@ export function KpiCards({ summary }: KpiCardsProps) {
       value: summary.created,
       icon: <Clock className="size-5 text-muted-foreground" />,
       href: "/dashboard/shipping/list?status=CREATED",
+      colorClass: "bg-linear-to-t from-blue-500/10 to-card",
     },
     {
       label: "出荷準備完了",
       value: summary.ready,
       icon: <Package className="size-5 text-muted-foreground" />,
       href: "/dashboard/shipping/list?status=READY",
+      colorClass: "bg-linear-to-t from-green-500/10 to-card",
     },
     {
       label: "本日発送",
       value: summary.shipped_today,
       icon: <Truck className="size-5 text-muted-foreground" />,
       href: "/dashboard/shipping/list?status=SHIPPED&date=today",
+      colorClass: "bg-linear-to-t from-purple-500/10 to-card",
     },
     {
       label: "返送",
@@ -56,7 +60,7 @@ export function KpiCards({ summary }: KpiCardsProps) {
             className={`@container/card cursor-pointer transition-shadow hover:shadow-md ${
               card.variant === "destructive" && card.value > 0
                 ? "border-destructive/50 bg-destructive/5"
-                : ""
+                : card.colorClass || "bg-linear-to-t from-primary/5 to-card"
             }`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

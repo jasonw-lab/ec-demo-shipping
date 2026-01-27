@@ -27,7 +27,7 @@ export default async function ShippingDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">発送管理ダッシュボード</h1>
+        <h1 className="text-2xl font-bold">発送管理</h1>
         <p className="text-muted-foreground">発送状況の概要と要対応案件を確認できます</p>
       </div>
 

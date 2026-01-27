@@ -34,7 +34,7 @@ go test ./...
 
 ### 1. ブランチ作成
 ```bash
-git checkout feature/init-app-base
+git checkout develop
 git checkout -b feature/issue-<番号>-<概要>
 ```
 
@@ -65,7 +65,7 @@ git push -u origin feature/issue-XXX-description
 ```bash
 gh pr create --title "feat(scope): description (issue-XXX)" \
   --body "## Summary\n- ...\n\n## Test plan\n- [ ] ..." \
-  --base feature/init-app-base
+  --base develop
 ```
 
 ### 6. PR承認・マージ（GitHub Web UI で実施）
