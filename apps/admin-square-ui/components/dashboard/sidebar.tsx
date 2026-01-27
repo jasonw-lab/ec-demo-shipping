@@ -17,6 +17,8 @@ import {
   HelpCircle,
   Check,
   Plus,
+  Package,
+  List,
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,16 +49,20 @@ import {
 } from "@/components/ui/collapsible";
 import { Kbd } from "@/components/ui/kbd";
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { UpgradeCard } from "./upgrade-card";
+import { usePathname } from "next/navigation";
 
 export function DashboardSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const [favoritesOpen, setFavoritesOpen] = useState(true);
+  const [shippingOpen, setShippingOpen] = useState(true);
+  const pathname = usePathname();
 
   return (
-    <Sidebar className="lg:border-r-0!" collapsible="offcanvas" {...props}>
+    <Sidebar className="lg:border-r-0!" collapsible="offcanvas" {...props} suppressHydrationWarning>
       <SidebarHeader className="pb-0">
         <div className="px-2 py-3">
           <div className="flex items-center justify-between">
@@ -165,11 +171,14 @@ export function DashboardSidebar({
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive
+                  asChild
+                  isActive={pathname === "/"}
                   className="h-7 text-sm text-muted-foreground"
                 >
-                  <LayoutDashboard className="size-4" />
-                  <span>Dashboard</span>
+                  <Link href="/">
+                    <LayoutDashboard className="size-4" />
+                    <span>Dashboard</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -198,6 +207,54 @@ export function DashboardSidebar({
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <Collapsible open={shippingOpen} onOpenChange={setShippingOpen}>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="h-4 pb-4 pt-2 text-xs text-muted-foreground hover:text-foreground hover:bg-transparent cursor-pointer">
+                <span>発送管理</span>
+                <ChevronDown
+                  className={cn(
+                    "size-3 transition-transform ml-auto",
+                    shippingOpen && "rotate-180"
+                  )}
+                />
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/shipping"}
+                      className="h-7 text-sm text-muted-foreground"
+                    >
+                      <Link href="/shipping">
+                        <Package className="size-4" />
+                        <span>ダッシュボード</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === "/shipping/list" || pathname?.startsWith("/shipping/list")}
+                      className="h-7 text-sm text-muted-foreground"
+                    >
+                      <Link href="/shipping/list">
+                        <List className="size-4" />
+                        <span>発送一覧</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarGroup>
 
         <SidebarSeparator />
