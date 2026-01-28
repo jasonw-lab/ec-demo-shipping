@@ -41,7 +41,7 @@ export const priorityColumns: ColumnDef<PriorityShipment>[] = [
     accessorKey: "priority_reason",
     header: ({ column }) => <DataTableColumnHeader column={column} title="理由" />,
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.priority_reason}</span>
+      <span className="text-muted-foreground">{row.original.priority_reason || "-"}</span>
     ),
     enableSorting: false,
   },

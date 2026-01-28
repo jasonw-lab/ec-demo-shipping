@@ -1,30 +1,51 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 
-import { cookies } from "next/headers";
-
-import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
-import { Separator } from "@/components/ui/separator";
+import { getClientCookie } from "@/lib/cookie.client";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { users } from "@/data/users";
-import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { getPreference } from "@/server/server-actions";
+import { users } from "@/data/users";
 
+import { AppSidebar } from "./_components/sidebar/app-sidebar";
 import { AccountSwitcher } from "./_components/sidebar/account-switcher";
 import { LayoutControls } from "./_components/sidebar/layout-controls";
 import { SearchDialog } from "./_components/sidebar/search-dialog";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
-export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
-  const [variant, collapsible] = await Promise.all([
-    getPreference("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
-    getPreference("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
-  ]);
+export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
+  const [mounted, setMounted] = useState(false);
+  const [defaultOpen, setDefaultOpen] = useState(true);
+  const [variant, setVariant] = useState<"sidebar" | "floating" | "inset">("inset");
+  const [collapsible, setCollapsible] = useState<"offcanvas" | "icon" | "none">("icon");
+
+  useEffect(() => {
+    setMounted(true);
+    
+    // Read preferences from client-side cookies
+    const sidebarState = getClientCookie("sidebar_state");
+    setDefaultOpen(sidebarState !== "false");
+
+    const sidebarVariant = getClientCookie("sidebar_variant");
+    if (sidebarVariant === "sidebar" || sidebarVariant === "floating" || sidebarVariant === "inset") {
+      setVariant(sidebarVariant);
+    }
+
+    const sidebarCollapsible = getClientCookie("sidebar_collapsible");
+    if (sidebarCollapsible === "offcanvas" || sidebarCollapsible === "icon" || sidebarCollapsible === "none") {
+      setCollapsible(sidebarCollapsible);
+    }
+  }, []);
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null;
+  }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={defaultOpen} suppressHydrationWarning>
       <AppSidebar variant={variant} collapsible={collapsible} />
       <SidebarInset
         className={cn(
@@ -41,7 +62,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             "[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md",
           )}
         >
-          <div className="flex w-full items-center justify-between px-4 lg:px-6">
+          <div className="flex w-full items-center justify-between px-4 lg:px-6" suppressHydrationWarning>
             <div className="flex items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />

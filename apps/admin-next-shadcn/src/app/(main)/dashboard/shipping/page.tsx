@@ -1,43 +1,61 @@
-import { Suspense } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 
 import { Spinner } from "@/components/ui/spinner";
 
-import { mockPriorityShipments, mockSummary } from "./_components/api";
+import { fetchPriorityShipmentsWithReason, fetchShippingSummary } from "./_components/api";
 import { KpiCards } from "./_components/kpi-cards";
 import { PriorityList } from "./_components/priority-list";
+import type { PriorityShipment, ShippingSummary } from "./_components/types";
 
-// Server Component でデータを取得
-async function getShippingData() {
-  // TODO: 実際のAPIに接続する場合は以下を使用
-  // const [summary, priorityShipments] = await Promise.all([
-  //   fetchShippingSummary(),
-  //   fetchPriorityShipments(5),
-  // ]);
+export default function ShippingDashboardPage() {
+  const [summary, setSummary] = useState<ShippingSummary>({ created: 0, ready: 0, shipped_today: 0, returned: 0 });
+  const [priorityShipments, setPriorityShipments] = useState<PriorityShipment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 開発用モックデータを使用
-  return {
-    summary: mockSummary,
-    priorityShipments: mockPriorityShipments,
-  };
-}
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [summaryData, shipmentsData] = await Promise.all([
+          fetchShippingSummary(),
+          fetchPriorityShipmentsWithReason(5),
+        ]);
 
-export default async function ShippingDashboardPage() {
-  const { summary, priorityShipments } = await getShippingData();
+        setSummary(summaryData);
+        setPriorityShipments(shipmentsData);
+      } catch (error) {
+        console.error("Failed to fetch shipping data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-bold">発送管理ダッシュボード</h1>
+          <p className="text-muted-foreground">発送状況の概要と要対応案件を確認できます</p>
+        </div>
+        <LoadingCards />
+        <LoadingList />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">発送管理ダッシュボード</h1>
+        <h1 className="text-2xl font-bold">発送管理</h1>
         <p className="text-muted-foreground">発送状況の概要と要対応案件を確認できます</p>
       </div>
 
-      <Suspense fallback={<LoadingCards />}>
-        <KpiCards summary={summary} />
-      </Suspense>
-
-      <Suspense fallback={<LoadingList />}>
-        <PriorityList shipments={priorityShipments} />
-      </Suspense>
+      <KpiCards summary={summary} />
+      <PriorityList shipments={priorityShipments} />
     </div>
   );
 }

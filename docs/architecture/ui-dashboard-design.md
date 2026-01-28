@@ -206,7 +206,200 @@ Sidebar
 
 ---
 
-## 11. 実装補足（AI Agent 向け）
+## 11. 発送詳細画面のデザイン設計思想
+
+### 11.1 デザインの目的
+発送詳細画面（Shipment Detail Sheet）は、オペレーターが発送情報を素早く確認し、適切なアクションを取るための重要なインターフェースである。以下の設計思想に基づいて実装する。
+
+### 11.2 視覚的階層とレイアウト戦略
+
+#### 11.2.1 ヘッダーデザイン
+- **グラデーション背景**: ヘッダーに美しいグラデーション背景（`from-primary/10 via-primary/5 to-background`）を適用し、視覚的な奥行きを演出
+- **ぼかし効果**: 装飾的な円形要素に `blur-3xl` / `blur-2xl` を適用し、柔らかく洗練された印象を与える
+- **アイコンの強調**: パッケージアイコンを `rounded-xl` の背景とシャドウ（`shadow-lg shadow-primary/20`）で囲み、視覚的な焦点を作る
+- **ステータスバッジ**: 右上に配置し、現在の状態を即座に認識できるようにする
+
+#### 11.2.2 カード型レイアウト
+- **情報のグループ化**: 関連する情報をカードコンポーネントでグループ化し、視覚的な境界を明確にする
+- **2カラムレイアウト**: 画面幅を効率的に活用し、スクロール量を削減（`lg:grid-cols-2`）
+- **シャドウとボーダー**: `border-2` と `shadow-md` を組み合わせ、カードに奥行きと重要度を表現
+- **ホバー効果**: `hover:shadow-lg` でインタラクティブ性を示唆
+
+### 11.3 カラーシステムとステータス表現
+
+#### 11.3.1 ステータス別グラデーション
+各ステータスに専用のグラデーションカラーを定義し、視覚的な識別性を向上：
+
+```typescript
+const STATUS_GRADIENTS = {
+  CREATED: "from-amber-500/10 to-amber-500/5 border-amber-500/20",
+  READY: "from-blue-500/10 to-blue-500/5 border-blue-500/20",
+  SHIPPED: "from-emerald-500/10 to-emerald-500/5 border-emerald-500/20",
+  DELIVERED: "from-green-500/10 to-green-500/5 border-green-500/20",
+  RETURNED: "from-red-500/10 to-red-500/5 border-red-500/20",
+  CANCELLED: "from-gray-500/10 to-gray-500/5 border-gray-500/20",
+};
+```
+
+#### 11.3.2 アイコンカラー
+ダークモード対応のアイコンカラーを定義：
+- ライトモード: `text-{color}-600`
+- ダークモード: `dark:text-{color}-400`
+
+#### 11.3.3 ステータスカードの強調
+- 大きなアイコン（`size-10`）を中央に配置
+- 背景に `rounded-2xl` と `shadow-inner` を適用
+- ステータス名を `text-2xl font-bold` で表示し、視認性を最大化
+
+### 11.4 タイムラインの視覚デザイン
+
+#### 11.4.1 グラデーション縦線
+- `bg-gradient-to-b from-primary via-primary/50 to-muted` でタイムラインの流れを表現
+- 過去から現在への時間の流れを視覚的に示す
+
+#### 11.4.2 イベントノード
+- **最新イベント**: `scale-110` で拡大し、`shadow-lg shadow-primary/30` で強調
+- **過去イベント**: 通常サイズで表示し、ホバー時に `border-primary/50` で反応
+- **アイコン統合**: 各ステータスに対応するアイコンをノード内に表示
+
+#### 11.4.3 イベントカード
+- `rounded-lg border bg-card` で統一感のあるデザイン
+- ホバー時に `hover:shadow-md` でインタラクティブ性を示す
+- 日時表示にカレンダーアイコンを追加し、視認性を向上
+
+### 11.5 配送情報の視覚的強調
+
+#### 11.5.1 追跡番号リンク
+- **グラデーション背景**: `from-primary/5 to-primary/10` で特別な要素であることを示す
+- **ボーダー**: `border-2 border-primary/20` で枠を強調
+- **ホバーアニメーション**: 
+  - `hover:border-primary/40` でボーダーを濃くする
+  - `hover:shadow-md` でシャドウを追加
+  - `group-hover:translate-x-0.5` で外部リンクアイコンを右に移動
+
+#### 11.5.2 配送業者表示
+- アイコン（`Box`）と組み合わせて表示
+- `bg-muted/50` の背景で情報を区別
+
+### 11.6 監査ログの視覚デザイン
+
+#### 11.6.1 変更内容の表現
+- **削除値**: `bg-destructive/10 px-1.5 py-0.5 text-destructive line-through` で赤系の背景とストライクスルー
+- **新規値**: `bg-primary/10 px-1.5 py-0.5 text-primary font-medium` で青系の背景と太字
+- **矢印アイコン**: `ArrowRight` で変更の方向性を明示
+
+#### 11.6.2 ログカード
+- `rounded-lg border bg-card` で統一
+- ホバー時に `hover:shadow-md` で反応
+- 時計アイコンとユーザーアイコンで情報の種類を視覚的に区別
+
+### 11.7 アクションボタンのデザイン
+
+#### 11.7.1 サイズと配置
+- `size="lg"` で操作しやすいサイズを確保
+- `flex-1` で均等な幅を保ち、視覚的なバランスを維持
+
+#### 11.7.2 アイコン統合
+- 各アクションに対応するアイコンを左側に配置（`mr-2 size-5`）
+- アイコンでアクションの意味を直感的に伝える
+
+#### 11.7.3 シャドウ効果
+- プライマリアクションに `shadow-md` を追加し、重要度を強調
+
+### 11.8 レスポンシブデザイン
+
+#### 11.8.1 画面幅の最適化
+- `sm:max-w-4xl` で十分な作業スペースを確保
+- モバイルでは `w-full` でフルスクリーン表示
+
+#### 11.8.2 グリッドレイアウト
+- `lg:grid-cols-2` で大画面では2カラム
+- 小画面では自動的に1カラムに折り返し
+
+### 11.9 マイクロインタラクション
+
+#### 11.9.1 トランジション
+- `transition-all` / `transition-shadow` / `transition-transform` で滑らかなアニメーション
+- ホバー、フォーカス時の視覚的フィードバック
+
+#### 11.9.2 グループホバー
+- `group` クラスを使用し、親要素のホバー時に子要素も反応
+- 追跡番号リンクの外部リンクアイコンなどに適用
+
+### 11.10 アクセシビリティとユーザビリティ
+
+#### 11.10.1 アイコンの意味付け
+- すべての重要な情報にアイコンを付与し、視覚的な手がかりを提供
+- テキストとアイコンを組み合わせ、理解しやすさを向上
+
+#### 11.10.2 空状態のデザイン
+- データがない場合は `border-2 border-dashed` で空状態を明示
+- 大きなアイコン（`size-8`）と説明文で状況を伝える
+
+#### 11.10.3 カラーコントラスト
+- `text-muted-foreground` でラベルと値を区別
+- 重要な情報は `font-semibold` / `font-bold` で強調
+
+### 11.11 デザインシステムの一貫性
+
+#### 11.11.1 スペーシング
+- `space-y-6` / `space-y-4` / `space-y-3` で一貫したリズムを作る
+- `p-6` / `p-4` / `p-3` でカード内の余白を統一
+
+#### 11.11.2 角丸
+- `rounded-xl` / `rounded-lg` / `rounded-md` で階層に応じた角丸を使用
+- 大きな要素ほど大きな角丸を適用
+
+#### 11.11.3 フォントサイズ
+- タイトル: `text-2xl` / `text-lg`
+- 本文: `text-sm` / `text-base`
+- 補足情報: `text-xs`
+
+---
+
+## 12. UIベース別スタイルガイドライン
+
+### 12.1 Square UI スタイル一貫性
+
+Square UI (`apps/admin-square-ui`) 実装時の統一ルール：
+
+#### カードコンポーネント
+```tsx
+// 標準カード
+<div className="rounded-xl border border-border bg-card p-4">
+
+// 強調カード（ステータス表示など）
+<div className="rounded-xl border-2 p-6">
+```
+
+#### テーブルコンテナ
+```tsx
+<div className="rounded-xl border border-border bg-card">
+  <div className="border-b border-border p-4">{/* ヘッダー */}</div>
+  <div className="overflow-hidden">{/* テーブル */}</div>
+  <div className="border-t border-border p-4">{/* フッター */}</div>
+</div>
+```
+
+#### ボタンサイズ
+- フィルタ・アクション: `size="sm"` + `h-7`
+- 主要アクション: デフォルトサイズ or `size="lg"`
+
+#### アイコンサイズ
+- メニュー・ボタン内: `size-4` / `size-3.5`
+- カード内装飾: `size-8` / `size-16`
+
+#### 色の使用
+- **推奨**: `text-foreground`, `text-muted-foreground`, `bg-card`, `bg-muted/50`
+- **ステータス色**: 各ステータスに応じた semantic color を使用可
+  - 成功: `text-green-600`, `text-emerald-600`
+  - 警告: `text-red-600`, `text-amber-600`
+  - 情報: `text-blue-600`
+- **禁止**: 新規のハードコード色追加（テーマ一貫性維持のため）
+
+---
+
+## 13. 実装補足（AI Agent 向け）
 
 - shadcn/ui の table / sheet / card / form / badge を利用する。
 - API Client で `version` フィールドを必ず送信する。
@@ -217,4 +410,4 @@ Sidebar
 ---
 
 本設計は、Shipping Service Backend 要件（v0.2.1）と完全に整合しており、  
-**UI設計としての最終版（v0.2.2）**とする。
+**UI設計としての最終版（v0.2.3）**とする。

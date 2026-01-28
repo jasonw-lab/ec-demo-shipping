@@ -150,7 +150,9 @@ export function ShipmentDetailSheet({ shipment, open, onOpenChange }: ShipmentDe
                     <Box className="size-6 text-muted-foreground" />
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">配送業者</p>
-                      <p className="font-semibold">{CARRIER_LABELS[shipment.carrier] || "-"}</p>
+                      <p className="font-semibold">
+                        {shipment.carrier ? CARRIER_LABELS[shipment.carrier] || shipment.carrier : "-"}
+                      </p>
                     </div>
                   </div>
                   
