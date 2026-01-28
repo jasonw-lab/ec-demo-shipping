@@ -1,31 +1,156 @@
 import type { AuditLog, PriorityShipment, Shipment, ShipmentsResponse, ShippingSummary, TimelineEvent } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+const IS_LOCAL_API = /localhost|127\.0\.0\.1/.test(API_BASE_URL);
 
 // KPIサマリー取得
 export async function fetchShippingSummary(): Promise<ShippingSummary> {
-  const res = await fetch(`${API_BASE_URL}/shipments/summary`, {
-    next: { revalidate: 60 },
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/shipments/summary`, {
+      cache: "no-store",
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch shipping summary");
+    if (!res.ok) {
+      console.error(`Failed to fetch shipping summary: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to fetch shipping summary: ${res.status}`);
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching shipping summary:", error);
+    if (IS_LOCAL_API) {
+      console.warn("Using mock shipping summary due to API fetch failure.");
+      return mockSummary;
+    }
+    throw error;
   }
-
-  return res.json();
 }
 
 // 要対応発送リスト取得
 export async function fetchPriorityShipments(limit = 5): Promise<PriorityShipment[]> {
-  const res = await fetch(`${API_BASE_URL}/shipments/priority?limit=${limit}`, {
-    next: { revalidate: 60 },
-  });
+  try {
+    const res = await fetch(`${API_BASE_URL}/shipments/priority?limit=${limit}`, {
+      cache: "no-store",
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch priority shipments");
+    if (!res.ok) {
+      console.error(`Failed to fetch priority shipments: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to fetch priority shipments: ${res.status}`);
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching priority shipments:", error);
+    if (IS_LOCAL_API) {
+      console.warn("Using mock priority shipments due to API fetch failure.");
+      return mockPriorityShipments.slice(0, limit);
+    }
+    throw error;
+  }
+}
+
+// 発送一覧取得
+export async function fetchShipments(params?: {
+  page?: number;
+  size?: number;
+  status?: string;
+  carrier?: string;
+  keyword?: string;
+}): Promise<ShipmentsResponse> {
+  try {
+    const searchParams = new URLSearchParams();
+
+    if (params?.page) searchParams.set("page", params.page.toString());
+    if (params?.size) searchParams.set("size", params.size.toString());
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.carrier) searchParams.set("carrier", params.carrier);
+    if (params?.keyword) searchParams.set("keyword", params.keyword);
+
+    const url = `${API_BASE_URL}/shipments?${searchParams.toString()}`;
+    console.log("Fetching shipments from:", url);
+
+    const res = await fetch(url, {
+      cache: "no-store",
+    });
+
+    console.log("Fetch response status:", res.status, res.statusText);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Failed to fetch shipments: ${res.status} ${res.statusText}`, errorText);
+      throw new Error(`Failed to fetch shipments: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Backend response format: { data, total, page, size }
+    // Frontend expects: { data, total, page, limit }
+    return {
+      data: data.data || [],
+      total: data.total || 0,
+      page: data.page || 1,
+      limit: data.size || 20,
+    };
+  } catch (error) {
+    console.error("Error fetching shipments:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error cause:", error.cause);
+    }
+    
+    // ローカルAPIの場合、モックデータを返す
+    if (IS_LOCAL_API) {
+      console.warn("Using mock shipments due to API fetch failure.");
+      return getMockShipments(params?.page || 1, params?.size || 20);
+    }
+    
+    throw error;
+  }
+}
+
+// 発送詳細取得
+export async function fetchShipment(orderId: string): Promise<Shipment> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/shipments/${orderId}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch shipment: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to fetch shipment: ${res.status}`);
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching shipment:", error);
+    throw error;
+  }
+}
+
+// Helper function to add priority_reason to shipments
+function addPriorityReason(shipment: Omit<PriorityShipment, 'priority_reason'>): PriorityShipment {
+  let priority_reason = "";
+
+  if (shipment.status === "RETURNED") {
+    priority_reason = "返送対応が必要";
+  } else if (shipment.status === "CREATED") {
+    const createdAt = new Date(shipment.created_at);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    if (hoursDiff > 24) {
+      priority_reason = "24時間超過";
+    }
+  } else if (shipment.status === "READY") {
+    priority_reason = "出荷待ち";
   }
 
-  return res.json();
+  return { ...shipment, priority_reason };
+}
+
+// Fetch priority shipments with priority_reason added
+export async function fetchPriorityShipmentsWithReason(limit = 5): Promise<PriorityShipment[]> {
+  const shipments = await fetchPriorityShipments(limit);
+  return shipments.map(addPriorityReason);
 }
 
 // モックデータ（開発用）
@@ -39,7 +164,7 @@ export const mockSummary: ShippingSummary = {
 export const mockPriorityShipments: PriorityShipment[] = [
   {
     id: 1,
-    order_id: 10001,
+    order_id: "10001",
     status: "RETURNED",
     carrier: "YAMATO",
     tracking_number: "1234-5678-9012",
@@ -50,7 +175,7 @@ export const mockPriorityShipments: PriorityShipment[] = [
   },
   {
     id: 2,
-    order_id: 10002,
+    order_id: "10002",
     status: "RETURNED",
     carrier: "SAGAWA",
     tracking_number: "2345-6789-0123",
@@ -61,10 +186,10 @@ export const mockPriorityShipments: PriorityShipment[] = [
   },
   {
     id: 3,
-    order_id: 10003,
+    order_id: "10003",
     status: "CREATED",
-    carrier: "",
-    tracking_number: "",
+    carrier: null,
+    tracking_number: null,
     shipping_address: "福岡県福岡市...",
     created_at: "2026-01-24T08:00:00Z",
     updated_at: "2026-01-24T08:00:00Z",
@@ -72,10 +197,10 @@ export const mockPriorityShipments: PriorityShipment[] = [
   },
   {
     id: 4,
-    order_id: 10004,
+    order_id: "10004",
     status: "READY",
     carrier: "JAPANPOST",
-    tracking_number: "",
+    tracking_number: null,
     shipping_address: "北海道札幌市...",
     created_at: "2026-01-25T16:00:00Z",
     updated_at: "2026-01-25T18:00:00Z",
@@ -83,10 +208,10 @@ export const mockPriorityShipments: PriorityShipment[] = [
   },
   {
     id: 5,
-    order_id: 10005,
+    order_id: "10005",
     status: "READY",
     carrier: "YAMATO",
-    tracking_number: "",
+    tracking_number: null,
     shipping_address: "愛知県名古屋市...",
     created_at: "2026-01-25T12:00:00Z",
     updated_at: "2026-01-25T14:00:00Z",
@@ -98,7 +223,7 @@ export const mockPriorityShipments: PriorityShipment[] = [
 export const mockShipments: Shipment[] = [
   {
     id: 1,
-    order_id: 10001,
+    order_id: "10001",
     status: "RETURNED",
     carrier: "YAMATO",
     tracking_number: "1234-5678-9012",
@@ -112,7 +237,7 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 2,
-    order_id: 10002,
+    order_id: "10002",
     status: "RETURNED",
     carrier: "SAGAWA",
     tracking_number: "2345-6789-0123",
@@ -126,10 +251,10 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 3,
-    order_id: 10003,
+    order_id: "10003",
     status: "CREATED",
-    carrier: "",
-    tracking_number: "",
+    carrier: null,
+    tracking_number: null,
     shipping_address: "〒810-0001 福岡県福岡市中央区天神1-2-3",
     ready_at: null,
     shipped_at: null,
@@ -140,10 +265,10 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 4,
-    order_id: 10004,
+    order_id: "10004",
     status: "READY",
     carrier: "JAPANPOST",
-    tracking_number: "",
+    tracking_number: null,
     shipping_address: "〒060-0001 北海道札幌市中央区北1条西1-2-3",
     ready_at: "2026-01-25T18:00:00Z",
     shipped_at: null,
@@ -154,10 +279,10 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 5,
-    order_id: 10005,
+    order_id: "10005",
     status: "READY",
     carrier: "YAMATO",
-    tracking_number: "",
+    tracking_number: null,
     shipping_address: "〒460-0001 愛知県名古屋市中区栄1-2-3",
     ready_at: "2026-01-25T14:00:00Z",
     shipped_at: null,
@@ -168,7 +293,7 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 6,
-    order_id: 10006,
+    order_id: "10006",
     status: "SHIPPED",
     carrier: "YAMATO",
     tracking_number: "3456-7890-1234",
@@ -182,7 +307,7 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 7,
-    order_id: 10007,
+    order_id: "10007",
     status: "SHIPPED",
     carrier: "SAGAWA",
     tracking_number: "4567-8901-2345",
@@ -196,7 +321,7 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 8,
-    order_id: 10008,
+    order_id: "10008",
     status: "DELIVERED",
     carrier: "JAPANPOST",
     tracking_number: "5678-9012-3456",
@@ -210,10 +335,10 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 9,
-    order_id: 10009,
+    order_id: "10009",
     status: "CREATED",
-    carrier: "",
-    tracking_number: "",
+    carrier: null,
+    tracking_number: null,
     shipping_address: "〒260-0001 千葉県千葉市中央区中央1-2-3",
     ready_at: null,
     shipped_at: null,
@@ -224,10 +349,10 @@ export const mockShipments: Shipment[] = [
   },
   {
     id: 10,
-    order_id: 10010,
+    order_id: "10010",
     status: "CREATED",
-    carrier: "",
-    tracking_number: "",
+    carrier: null,
+    tracking_number: null,
     shipping_address: "〒980-0001 宮城県仙台市青葉区中央1-2-3",
     ready_at: null,
     shipped_at: null,

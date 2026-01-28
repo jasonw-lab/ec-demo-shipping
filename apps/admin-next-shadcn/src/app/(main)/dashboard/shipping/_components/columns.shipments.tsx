@@ -62,11 +62,14 @@ export const shipmentsColumns: ColumnDef<Shipment>[] = [
   {
     accessorKey: "carrier",
     header: ({ column }) => <DataTableColumnHeader column={column} title="配送業者" />,
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {CARRIER_LABELS[row.original.carrier] || "-"}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const carrier = row.original.carrier;
+      return (
+        <span className="text-muted-foreground">
+          {carrier ? CARRIER_LABELS[carrier] || carrier : "-"}
+        </span>
+      );
+    },
     enableSorting: true,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));

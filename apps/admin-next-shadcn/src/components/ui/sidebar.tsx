@@ -68,6 +68,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -83,10 +84,22 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      if (typeof document !== "undefined") {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      }
     },
     [setOpenProp, open]
   )
+
+  // Ensure client-side only rendering for interactive elements
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Ensure client-side only rendering for interactive elements
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
@@ -142,6 +155,7 @@ function SidebarProvider({
             "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
             className
           )}
+          suppressHydrationWarning
           {...props}
         >
           {children}

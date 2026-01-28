@@ -12,23 +12,23 @@ export interface ShippingSummary {
 // 要対応発送（GET /api/v1/shipments/priority）
 export interface PriorityShipment {
   id: number;
-  order_id: number;
+  order_id: string;
   status: ShippingStatus;
-  carrier: string;
-  tracking_number: string;
+  carrier: string | null;
+  tracking_number: string | null;
   shipping_address: string;
   created_at: string;
   updated_at: string;
-  priority_reason: string;
+  priority_reason?: string;
 }
 
 // 発送データ
 export interface Shipment {
   id: number;
-  order_id: number;
+  order_id: string;
   status: ShippingStatus;
-  carrier: string;
-  tracking_number: string;
+  carrier: string | null;
+  tracking_number: string | null;
   shipping_address: string;
   ready_at: string | null;
   shipped_at: string | null;
