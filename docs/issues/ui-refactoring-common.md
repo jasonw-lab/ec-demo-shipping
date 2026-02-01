@@ -1,43 +1,37 @@
 # UI リファクタリング 共通仕様
 
 **作成日**: 2026-01-26  
+**最終更新**: 2026-02-01  
 **対象プロジェクト**: Shipping Service Admin UI  
 **リファクタリングスコープ**: 複数UIベース並行評価  
-**根拠 ADR**: [ADR-006: UI Template Strategy](../adr/ADR-006-horizon-ui-adoption.md)
+**根拠 ADR**: [ADR-006: UI Template Strategy](../adr/ADR-006-multi-ui-template.md)
 
 ---
 
-## 📋 リファクタリング概要
+## 📋 概要
 
-### 目的
-現在のハイブリッド UI 構成（arhamkhnz + shadcn Blocks）から、**3つの shadcn/ui ベーステンプレート**を並行評価し、以下を実現する：
+このドキュメントは、複数UIベース（Horizon UI、Square UI、Next Shadcn Dashboard、Material UI、Ant Design）の並行評価における**共通機能要件**を定義します。
 
-- UI/UX の一貫性向上
-- 保守性の改善（単一ソース管理）
-- 開発効率の向上（明確な UI パターン）
-- ダークモード完全対応
-
-### 評価対象UIベース
-
-| UIベース | ディレクトリ | 公式URL | 特徴 |
-|---|---|---|---|
-| **Horizon UI** | `apps/admin-horizon-ui` | https://horizon-ui.com/shadcn-ui | 商用品質、30+コンポーネント、充実ドキュメント |
-| **Square UI** | `apps/admin-square-ui` | https://github.com/ln-dev7/square-ui | モダンデザイン、Dashboard特化 |
-| **Next Shadcn Dashboard** | `apps/admin-next-shadcn` | https://github.com/Kiranism/next-shadcn-dashboard-starter | シンプル構成、軽量 |
+各UIベースの実装詳細は個別のIssueファイル（`issues-xxx.md`）で管理し、本ドキュメントは全UIベース共通の仕様として参照されます。
 
 ### 基本方針
-- **段階的実装**: 画面単位で全UIベースで並行実装
-- **機能保証**: 既存機能の動作を完全に保証（API 層・ビジネスロジック層は変更なし）
-- **並行稼働**: `apps/admin-ui` を一時的に保持（ロールバック可能）
+- **機能要件は全UIベースで共通**: API仕様、ビジネスロジック、画面機能は統一
+- **実装方法は各UIベース独自**: レイアウト、コンポーネント、スタイルは各UIベースのベストプラクティスに従う
 - **🎨 各UIベーススタイル維持（重要）**: レイアウト・テーマシステムは各UIベースのまま維持
-  - 各UIベースのソースコードをベースに開発
-  - 全体的な画面スタイル・レイアウトシステムは各UIベースで維持
-  - **テーマ色の一貫性保証**: 各UIベース定義のカラーパレットのみ使用
-  - 個別コンポーネントの variant 指定は各UIベースの variant のみ許容
-- **♻️ 既存コンポーネント優先利用（重要）**:
-  1. **各UIベースの既存コンポーネント・パーツを最大限利用**（最優先）
-  2. **shadcn/ui標準コンポーネントを利用**（既存コンポーネントがない場合）
-  3. **新規作成は最小限**（上記のいずれも適用できない場合のみ）
+- **♻️ 既存コンポーネント優先利用**: 各UIベースの既存コンポーネントを最大限活用
+
+---
+
+## 📖 仕様参照
+
+本ドキュメントの機能仕様は以下のドキュメントを基準とします：
+
+### 設計書
+- **[UI設計書](../design/ui-dashboard-design.md)** - 画面レイアウト、コンポーネント仕様
+- **[UI-APIインターフェース定義](../design/ui-api-interface-mapping.md)** - API仕様、データ構造
+
+### 要件定義
+- **[Shipping Service要件定義](../design/shipping-service-requirements.md)** - 業務要件、ステータス定義、API仕様
 
 ---
 
@@ -228,54 +222,10 @@ ls apps/admin-{ui-base}/components/ui/
 
 ---
 
-## 📝 各UIベース用Issue管理ファイル
-
-各UIベースの実装詳細は以下のファイルで管理します：
-
-- [Horizon UI 実装Issue](./issues-horizon-ui.md)
-- [Square UI 実装Issue](./issues-square-ui.md)
-- [Next Shadcn Dashboard 実装Issue](./issues-next-shadcn.md)
-
-各Issueファイルには以下を記載：
-- 各UIベース固有の実装詳細（使用コンポーネント、ディレクトリ構造）
-- 各UIベースのカスタマイズ実装例（コード例）
-- 各UIベースのレビュー記録
-
----
-
-## 📊 評価基準
-
-Phase 3（評価・選定）で以下の観点から各UIベースを比較評価します。
-
-### 評価観点
-
-| 観点 | 評価項目 | 重み |
-|---|---|---|
-| **UI/UX 品質** | デザイン一貫性、ダークモード対応、レスポンシブ、アクセシビリティ | 30% |
-| **開発効率** | 実装速度、AI Agent 対応、ドキュメント充実度、コンポーネント再利用性 | 30% |
-| **保守性** | アップデート追従性、カスタマイズ容易性、コード可読性 | 25% |
-| **パフォーマンス** | ページロード速度、バンドルサイズ、レンダリング性能 | 15% |
-
-評価結果は [ui-evaluation.md](./ui-evaluation.md) に記録します。
-
-### 並行稼働期間の管理
-
-**Phase 3（評価・選定）期間中**:
-- 既存メニュー（`apps/admin-ui`）と新規メニュー（各UIベース）を並行稼働
-- ユーザーフィードバック・パフォーマンス測定を実施
-- 両画面の動作を比較検証
-
-**Phase 4（移行完了後）**:
-- 最適UIベース選定後、既存メニュー削除のIssueを作成
-- 既存メニューの段階的削除（ユーザー通知・移行期間を設定）
-- `apps/admin-ui` のアーカイブまたは削除
-
----
-
 ## 📚 参考資料
 
 ### プロジェクト資料
-- [ADR-006: UI Template Strategy](../adr/ADR-006-horizon-ui-adoption.md)
+- [ADR-006: UI Template Strategy](../adr/ADR-006-multi-ui-template.md)
 - [ADR-001: UI フレームワーク選定](../adr/ADR-001-ui-framework.md)
 - [ADR-003: UI アプリアーキテクチャ](../adr/ADR-003-ui-architecture.md)
 

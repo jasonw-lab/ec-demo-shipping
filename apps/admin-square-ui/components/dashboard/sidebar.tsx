@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Search,
   Bell,
@@ -17,6 +19,8 @@ import {
   HelpCircle,
   Check,
   Plus,
+  Package,
+  List,
 } from "lucide-react";
 import {
   Sidebar,
@@ -54,6 +58,7 @@ export function DashboardSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const [favoritesOpen, setFavoritesOpen] = useState(true);
+  const pathname = usePathname();
 
   return (
     <Sidebar className="lg:border-r-0!" collapsible="offcanvas" {...props}>
@@ -161,16 +166,55 @@ export function DashboardSidebar({
         <SidebarSeparator />
 
         <SidebarGroup>
+          <SidebarGroupLabel className="h-4 pb-2 pt-2 text-xs text-muted-foreground">
+            発送管理
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive
-                  className="h-7 text-sm text-muted-foreground"
-                >
-                  <LayoutDashboard className="size-4" />
-                  <span>Dashboard</span>
-                </SidebarMenuButton>
+                <Link href="/shipping">
+                  <SidebarMenuButton
+                    isActive={pathname === "/shipping"}
+                    className="h-7 text-sm text-muted-foreground"
+                  >
+                    <Package className="size-4" />
+                    <span>ダッシュボード</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/shipping/list">
+                  <SidebarMenuButton
+                    isActive={pathname === "/shipping/list"}
+                    className="h-7 text-sm text-muted-foreground"
+                  >
+                    <List className="size-4" />
+                    <span>発送一覧</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="h-4 pb-2 pt-2 text-xs text-muted-foreground">
+            既存メニュー（保留中）
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Link href="/">
+                  <SidebarMenuButton
+                    isActive={pathname === "/"}
+                    className="h-7 text-sm text-muted-foreground"
+                  >
+                    <LayoutDashboard className="size-4" />
+                    <span>Dashboard</span>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton className="h-7 text-sm text-muted-foreground">
