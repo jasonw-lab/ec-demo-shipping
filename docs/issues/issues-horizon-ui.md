@@ -1,11 +1,14 @@
 # Horizon UI 実装Issue管理
 
 **作成日**: 2026-01-26  
+**更新日**: 2026-02-01  
 **対象プロジェクト**: Shipping Service Admin UI  
 **UIベース**: Horizon UI Shadcn Boilerplate  
 **実装ディレクトリ**: `apps/admin-horizon-ui`  
+**Issue採番範囲**: 2xx  
+**ソースフォルダ構成**: Horizon UI独自の構成に従う  
 **共通仕様**: [UI リファクタリング共通仕様](./ui-refactoring-common.md)  
-**根拠 ADR**: [ADR-006: UI Template Strategy](../adr/ADR-006-horizon-ui-adoption.md)
+**根拠 ADR**: [ADR-006: UI Template Strategy](../adr/ADR-006-multi-ui-template.md)
 
 ---
 
@@ -47,16 +50,16 @@
 
 | Issue ID | 画面/機能 | 優先度 | 工数見積 | ステータス |
 |---|---|---|---|---|
-| [Issue 013](#issue-013-horizon-ui-レイアウトシステム整備) | レイアウトシステム整備 | P0 | 1日 | 🔴 未着手 |
-| [Issue 014](#issue-014-horizon-ui-ダッシュボード画面実装) | ダッシュボード画面 | P1 | 0.5〜1日 | 🔴 未着手 |
-| [Issue 015](#issue-015-horizon-ui-発送一覧画面実装) | 発送一覧画面 | P1 | 1日 | 🔴 未着手 |
-| [Issue 016](#issue-016-horizon-ui-発送詳細画面実装) | 発送詳細画面 | P1 | 0.5〜1日 | 🔴 未着手 |
+| [Issue 201](#issue-201-horizon-ui-レイアウトシステム整備) | レイアウトシステム整備 | P0 | 1日 | 🔴 未着手 |
+| [Issue 202](#issue-202-horizon-ui-ダッシュボード画面実装) | ダッシュボード画面 | P1 | 0.5〜1日 | 🔴 未着手 |
+| [Issue 203](#issue-203-horizon-ui-発送一覧画面実装) | 発送一覧画面 | P1 | 1日 | 🔴 未着手 |
+| [Issue 204](#issue-204-horizon-ui-発送詳細画面実装) | 発送詳細画面 | P1 | 0.5〜1日 | 🔴 未着手 |
 
 **合計工数見積**: 3〜4日
 
 ---
 
-## Issue 013: Horizon UI レイアウトシステム整備
+## Issue 201: Horizon UI レイアウトシステム整備
 
 ### 概要
 Horizon UI の Layout System（Sidebar / Header / Theme）を基盤として整備し、すべての画面で共通使用する。
@@ -638,7 +641,7 @@ apps/admin-horizon-ui/
 ## 📚 参考資料
 
 ### プロジェクト資料
-- [ADR-006: Horizon UI Shadcn テンプレート採用](../adr/ADR-006-horizon-ui-adoption.md)
+- [ADR-006: UI Template Strategy](../adr/ADR-006-multi-ui-template.md)
 - [ADR-001: UI フレームワーク選定](../adr/ADR-001-ui-framework.md)
 - [ADR-003: UI アプリアーキテクチャ](../adr/ADR-003-ui-architecture.md)
 - [ui-dashboard-design.md](../architecture/ui-dashboard-design.md)

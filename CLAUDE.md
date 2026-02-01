@@ -1,203 +1,139 @@
-# CLAUDE.md
+# Claude CLI 開発ガイドライン
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## プロジェクト固有の情報
+- `AGENT.md` を参照
 
-## Project Overview
+## Rate Limit 対策
 
-Shipping Service - EC発送管理。Go API + 複数Next.js Admin UI（並行評価中）。
+### 基本原則
+- **不要な API 呼び出しを減らす**
+  - 同じ情報を何度も取得しない
+  - コンテキストを活用して重複した検索を避ける
+  - ファイル読み込みは必要な範囲を一度に取得する
 
-## Build Commands
+- **複数コマンドは並列実行でまとめる**
+  - 独立した操作は並列で実行する
+  - 複数ファイルの読み込みは一度に行う
+  - 依存関係のない検索は同時に実行する
 
-### Frontend
+### 実装時の注意点
+
+#### ファイル操作
 ```bash
-# UI bases: admin-horizon-ui / admin-square-ui / admin-next-shadcn
-cd apps/admin-{ui-base}
-npm install && npm run dev
-npm run build
+# ❌ 避けるべき: 複数回の小さな読み込み
+read_file(file1, lines 1-10)
+read_file(file1, lines 20-30)
+read_file(file1, lines 40-50)
+
+# ✅ 推奨: 一度に必要な範囲を読み込む
+read_file(file1, lines 1-50)
 ```
 
-### Backend
+#### 並列実行
 ```bash
-cd apps/api
-go mod tidy
-go run cmd/server/main.go
-go test ./...
+# ❌ 避けるべき: 順次実行
+read_file(file1)
+read_file(file2)
+read_file(file3)
+
+# ✅ 推奨: 並列実行
+read_file(file1) + read_file(file2) + read_file(file3)
 ```
 
-## Architecture Notes
-
-- **ADR-006**: 3つのshadcn/uiベース並行評価中（Horizon UI / Square UI / Next Shadcn Dashboard）
-- 各UIベースの**既存コンポーネント優先利用**（新規作成は最小限）
-- 詳細: `docs/adr/ADR-006-horizon-ui-adoption.md`, `docs/issues/ui-refactoring-common.md`
-
-## Claude CLI Issue対応フロー
-
-### 1. ブランチ作成
+#### 編集操作
 ```bash
-git checkout develop
-git checkout -b feature/issue-<番号>-<概要>
+# ❌ 避けるべき: 単一ファイルの複数回編集
+replace_string_in_file(file1, change1)
+replace_string_in_file(file1, change2)
+
+# ✅ 推奨: multi_replace_string_in_file で一括編集
+multi_replace_string_in_file([change1, change2])
 ```
 
-### 2. 実装
-- Issue ファイル (`docs/issues/issue-XXX-*.md`) を確認
-- 1 Issue = 1 ブランチで対応
-- コミットメッセージに Issue 番号を含める
+## ワークフロー原則
 
-### 3. テスト・ビルド確認
-```bash
-cd apps/api && go test ./... && go build ./...
-cd apps/admin-{ui-base} && npm run build  # 対象UIベースを指定
-```
+### 不要な確認をなくす
+- 実装中は確認を求めない
+- 自律的に判断して作業を進める
+- ユーザーの意図を推測して最適な実装を行う
 
-### 3.5. 動作確認（ユーザー目視）
-- **テスト・ビルド完了後、一旦停止する**
-- ユーザーが目視で動作確認を行う
-- **直接コミットは行わない** - ユーザーの確認・承認を待つ
+### 最終確認のみ
+- **実装完了後に最後の確認を行う**
+- 完了した内容を簡潔に報告
+- 必要に応じて次のステップを提案
 
-### 4. コミット・プッシュ
-```bash
-git add <files>
-git commit -m "feat(scope): description (issue-XXX)"
-git push -u origin feature/issue-XXX-description
-```
+## コーディング規約
 
-### 5. PR作成（Claude CLI で実行）
-```bash
-gh pr create --title "feat(scope): description (issue-XXX)" \
-  --body "## Summary\n- ...\n\n## Test plan\n- [ ] ..." \
-  --base develop
-```
+### ファイル作成・編集
+- 必要なファイルのみ作成する
+- 大規模な変更は計画的に実行する
+- コンテキストを十分に理解してから編集する
 
-### 6. PR承認・マージ（GitHub Web UI で実施）
-- Claude CLI では PR 作成まで
-- 承認・マージは GitHub Web UI で手動実施
+### エラー処理
+- エラーが発生した場合は自律的に解決を試みる
+- 解決できない場合のみユーザーに報告
+- 代替案を提示する
 
-### Rate Limit 対策
-- 不要な API 呼び出しを減らす
-- 複数コマンドは並列実行でまとめる
+### コミュニケーション
+- 簡潔で明確な報告
+- 技術的な詳細は必要な場合のみ
+- 絵文字は使用しない（ユーザー要求がない限り）
+### Git コミット
+- **コミット履歴に「CLAUDE」を残さない**
+- **committer と author に「CLAUDE」を含めない**
+- ユーザーの名前とメールアドレスを使用する
+## チェックリスト
 
+### 開発開始前
+- [ ] 要件を正確に理解する
+- [ ] ワークスペース構造を確認する
+- [ ] 関連ファイルを特定する
 
+### 実装中
+- [ ] 並列実行可能な操作をまとめる
+- [ ] 不要な API 呼び出しを避ける
+- [ ] 一度に十分なコンテキストを取得する
 
+### 実装完了後
+- [ ] 変更内容を確認する
+- [ ] テストの必要性を判断する
+- [ ] 簡潔な完了報告を行う
 
-# Claude Code Execution Rules (Non-Interactive Mode)
+## ベストプラクティス
 
-This repository is configured for **non-interactive execution**.
-The user prefers Claude to proceed automatically without asking for confirmation.
+### 効率的な検索
+1. `semantic_search`: 概念的な検索に使用
+2. `grep_search`: 正確な文字列パターンの検索
+3. `file_search`: ファイル名による検索
 
----
+### 効率的な読み込み
+- 大きめの範囲を一度に読む（小刻みな読み込みを避ける）
+- 並列で複数ファイルを読む
+- grep_search でファイルの概要を把握してから詳細を読む
 
-## 1. General Principles
+### 効率的な編集
+- `multi_replace_string_in_file` を活用
+- 関連する変更を一括で実行
+- 十分なコンテキスト（前後3-5行）を含める
 
-- Assume all instructions are approved unless explicitly stated otherwise.
-- NEVER ask "Do you want to proceed?" or similar questions.
-- If instructions are ambiguous, make a reasonable assumption and proceed.
-- Focus on implementation speed and correctness.
+## Rate Limit 管理
 
----
+### API 呼び出し最適化
+1. **計画フェーズ**: 最小限の検索で全体像を把握
+2. **実装フェーズ**: 並列実行で効率化
+3. **検証フェーズ**: 必要な確認のみ実施
 
-## 2. File Operations
+### モニタリング
+- 不要な重複呼び出しがないか常に意識
+- 複数の小さな操作を統合できないか検討
+- 効率的なツール選択を心がける
 
-You MUST proceed automatically for:
-- Creating new files
-- Editing existing files
-- Refactoring code
-- Reformatting code
-- Adding or updating documentation
-- Generating test files
+## Issue対応フロー
+- `AGENT.md` を参照
 
-You MUST NOT ask for confirmation for any of the above.
-
-You MUST ask BEFORE:
-- Deleting files
-- Renaming files in a way that breaks public APIs
-- Removing large directories
-
----
-
-## 3. Command Execution Rules
-
-You MAY run automatically:
-- go test ./...
-- go build ./...
-- npm install
-- npm run build
-- npm run lint
-- mvn test / mvn package
-- gradle build
-- git status
-- git diff
-- git add .
-
-You MUST NOT ask before running the above commands.
-
-You MUST ask BEFORE:
-- rm -rf
-- docker system prune
-- database migration on production
-- commands affecting production environments
+## Issue一覧
+- `AGENT.md` を参照
 
 ---
 
-## 4. Git Rules
-
-You MUST:
-- Generate commit messages automatically
-- Use Conventional Commits format
-- Include issue numbers if available
-- Proceed with `git commit` without asking
-
-Example commit format:
-feat(shipping): implement delivery fee calculation (#123)
-
-You MAY run automatically:
-- git add .
-- git commit -m "<generated message>"
-
-You MUST ask BEFORE:
-- git push --force
-- git reset --hard
-- rewriting published history
-
----
-
-## 5. Scope of Responsibility
-
-Claude Code is responsible for:
-- Issue implementation
-- Bug fixes
-- Refactoring
-- Test additions
-- Local build verification
-
-Claude Code is NOT responsible for:
-- Final PR approval
-- Production deployment
-- Force operations on git
-
----
-
-## 6. Stop Conditions (Very Limited)
-
-You may STOP and ask the user ONLY if:
-- The request conflicts with previous explicit rules
-- A destructive operation is required
-- Security-sensitive secrets are involved
-
-Otherwise: continue automatically.
-
----
-
-## 7. Style & Quality
-
-- Follow existing project structure and conventions
-- Prefer simple, readable code
-- Do not over-engineer
-- Do not introduce unnecessary dependencies
-- Keep changes minimal and scoped to the task
-
----
-
-## Final Rule (Important)
-
-DO NOT ask for confirmation.
-PROCEED and IMPLEMENT.
+**最終更新**: 2026年1月31日
