@@ -21,7 +21,10 @@ export default {
    * @doc https://github.com/chimurai/http-proxy-middleware
    */
   test: {
-    // localhost:8000/api/** -> https://preview.pro.ant.design/api/**
+    '/api/v1/': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+    },
     '/api/': {
       target: 'https://proapi.azurewebsites.net',
       changeOrigin: true,
@@ -29,6 +32,10 @@ export default {
     },
   },
   pre: {
+    '/api/v1/': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+    },
     '/api/': {
       target: 'your pre url',
       changeOrigin: true,
