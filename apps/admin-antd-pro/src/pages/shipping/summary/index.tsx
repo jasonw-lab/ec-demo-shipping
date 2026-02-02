@@ -10,10 +10,13 @@ import {
 import { useNavigate, useRequest } from '@umijs/max';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { ChartCard, Field } from '@/pages/dashboard/analysis/components/Charts';
 import { getSummary, getPriorityShippings } from '@/services/shipping';
 
 const { Title } = Typography;
+
+dayjs.extend(customParseFormat);
 
 const statusColors: Record<string, string> = {
   CREATED: 'default',
@@ -51,6 +54,23 @@ const getPriorityReason = (shipping: ShippingAPI.Shipping): string => {
   return '';
 };
 
+const formatDateTime = (value?: string | null) => {
+  if (!value) return '-';
+  const strictParsed = dayjs(
+    value,
+    [
+      'YYYY-MM-DD HH:mm:ss.SSS',
+      'YYYY-MM-DD HH:mm:ss',
+      'YYYY-MM-DDTHH:mm:ssZ',
+      'YYYY-MM-DDTHH:mm:ss.SSSZ',
+    ],
+    true,
+  );
+  const parsed = strictParsed.isValid() ? strictParsed : dayjs(value);
+  if (!parsed.isValid() || parsed.year() <= 1) return '-';
+  return parsed.format('YYYY-MM-DD HH:mm');
+};
+
 const ShippingSummary: React.FC = () => {
   const navigate = useNavigate();
 
@@ -85,7 +105,7 @@ const ShippingSummary: React.FC = () => {
       title: '更新日時',
       dataIndex: 'updated_at',
       key: 'updated_at',
-      render: (value: string) => dayjs(value).format('YYYY-MM-DD HH:mm'),
+      render: (value: string) => formatDateTime(value),
     },
   ];
 
