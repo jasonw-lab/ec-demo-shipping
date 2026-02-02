@@ -1,4 +1,12 @@
 declare namespace ShippingAPI {
+  /** 共通レスポンス形式 */
+  interface Response<T> {
+    success: boolean;
+    data: T;
+    errorCode?: number;
+    errorMessage?: string;
+  }
+
   /** 発送サマリ */
   interface Summary {
     created: number;
@@ -25,6 +33,7 @@ declare namespace ShippingAPI {
 
   /** 発送一覧レスポンス */
   interface ListResponse {
+    success: boolean;
     data: Shipping[];
     total: number;
     page: number;

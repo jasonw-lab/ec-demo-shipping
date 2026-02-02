@@ -1,7 +1,7 @@
 # Shipping Service UI ↔ API Interface Mapping
 
-**Version:** 0.2.0  
-**Status:** Revised (Tech Lead Review Applied)  
+**Version:** 0.3.0
+**Status:** Revised (Ant Design Pro Response Format Applied)
 **Scope:** Shipping Service Admin UI – Backend API Contract
 
 ---
@@ -29,11 +29,45 @@
 - **Backend（Go）**
   - JSON レスポンスは `snake_case`
   - 例: `order_id`, `tracking_number`
-- **Frontend（Next.js）**
+- **Frontend（Next.js / Ant Design Pro）**
   - 内部では `camelCase` を使用
   - API Client 層で変換、または snake_case をそのまま扱ってもよい
 
 > Go の `json` タグで snake_case を返すのを正とする。
+
+### 2.3 共通レスポンス形式（Ant Design Pro 準拠）
+
+すべての API レスポンスは以下の形式に準拠する。
+
+#### 成功レスポンス
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
+
+#### エラーレスポンス
+```json
+{
+  "success": false,
+  "errorCode": 400,
+  "errorMessage": "validation error"
+}
+```
+
+#### 一覧レスポンス
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "total": 100,
+  "page": 1,
+  "size": 20
+}
+```
+
+> Ant Design Pro の `useRequest` と `errorConfig` に対応した形式。
 
 ---
 
@@ -50,10 +84,13 @@
 #### Response（200 OK）
 ```json
 {
-  "created": 12,
-  "ready": 5,
-  "shipped_today": 8,
-  "returned": 1
+  "success": true,
+  "data": {
+    "created": 12,
+    "ready": 5,
+    "shipped_today": 8,
+    "returned": 1
+  }
 }
 ```
 
@@ -114,17 +151,13 @@
 
 ### 5.1 400 Bad Request
 
-Go の validator ライブラリを前提としたエラー形式。
+Ant Design Pro 形式のエラーレスポンス。
 
 ```json
 {
-  "message": "validation error",
-  "errors": [
-    {
-      "field": "tracking_number",
-      "reason": "invalid format"
-    }
-  ]
+  "success": false,
+  "errorCode": 400,
+  "errorMessage": "invalid format"
 }
 ```
 
@@ -165,7 +198,7 @@ Go の validator ライブラリを前提としたエラー形式。
 
 本ドキュメントは以下とセットで使用する：
 
-- shipping-service-requirements.md v0.2.1  
-- ui-dashboard-design.md v0.2.2  
+- shipping-service-requirements.md v0.2.1
+- ui-dashboard-design.md v0.2.2
 
-**UI ↔ API 契約としての最終版（v0.2.0）**
+**UI ↔ API 契約としての最終版（v0.3.0）**

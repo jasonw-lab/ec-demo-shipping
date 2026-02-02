@@ -109,7 +109,7 @@ const ShippingSummary: React.FC = () => {
       <Row gutter={24}>
         <Col {...topColResponsiveProps}>
           <ChartCard
-            bordered={false}
+            variant="borderless"
             title="未着手"
             action={
               <Tooltip title="発送作成済み、未処理の件数">
@@ -131,7 +131,7 @@ const ShippingSummary: React.FC = () => {
 
         <Col {...topColResponsiveProps}>
           <ChartCard
-            bordered={false}
+            variant="borderless"
             title="出荷作業待ち"
             action={
               <Tooltip title="出荷準備完了、作業待ちの件数">
@@ -153,7 +153,7 @@ const ShippingSummary: React.FC = () => {
 
         <Col {...topColResponsiveProps}>
           <ChartCard
-            bordered={false}
+            variant="borderless"
             title="本日出荷"
             action={
               <Tooltip title="本日出荷済みの件数（JST基準）">
@@ -175,7 +175,7 @@ const ShippingSummary: React.FC = () => {
 
         <Col {...topColResponsiveProps}>
           <ChartCard
-            bordered={false}
+            variant="borderless"
             title="返送/トラブル"
             action={
               <Tooltip title="返送対応が必要な件数">
