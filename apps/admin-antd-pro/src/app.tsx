@@ -29,33 +29,42 @@ export async function getInitialState(): Promise<{
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
 }> {
-  const fetchUserInfo = async () => {
-    try {
-      const msg = await queryCurrentUser({
-        skipErrorHandler: true,
-      });
-      return msg.data;
-    } catch (_error) {
-      history.push(loginPath);
-    }
-    return undefined;
+  // TODO: 将来ログイン機能を有効化する際は、以下のコメントアウトを解除
+  // const fetchUserInfo = async () => {
+  //   try {
+  //     const msg = await queryCurrentUser({
+  //       skipErrorHandler: true,
+  //     });
+  //     return msg.data;
+  //   } catch (_error) {
+  //     history.push(loginPath);
+  //   }
+  //   return undefined;
+  // };
+  // const { location } = history;
+  // if (
+  //   ![loginPath, '/user/register', '/user/register-result'].includes(
+  //     location.pathname,
+  //   )
+  // ) {
+  //   const currentUser = await fetchUserInfo();
+  //   return {
+  //     fetchUserInfo,
+  //     currentUser,
+  //     settings: defaultSettings as Partial<LayoutSettings>,
+  //   };
+  // }
+
+  // ログイン無効化: ダミーユーザーを返す
+  const mockUser: API.CurrentUser = {
+    name: 'Admin',
+    avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
+    userid: '1',
+    access: 'admin',
   };
-  // 如果不是登录页面，执行
-  const { location } = history;
-  if (
-    ![loginPath, '/user/register', '/user/register-result'].includes(
-      location.pathname,
-    )
-  ) {
-    const currentUser = await fetchUserInfo();
-    return {
-      fetchUserInfo,
-      currentUser,
-      settings: defaultSettings as Partial<LayoutSettings>,
-    };
-  }
+
   return {
-    fetchUserInfo,
+    currentUser: mockUser,
     settings: defaultSettings as Partial<LayoutSettings>,
   };
 }
@@ -83,11 +92,11 @@ export const layout: RunTimeLayoutConfig = ({
     },
     footerRender: () => <Footer />,
     onPageChange: () => {
-      const { location } = history;
-      // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && location.pathname !== loginPath) {
-        history.push(loginPath);
-      }
+      // TODO: 将来ログイン機能を有効化する際は、以下のコメントアウトを解除
+      // const { location } = history;
+      // if (!initialState?.currentUser && location.pathname !== loginPath) {
+      //   history.push(loginPath);
+      // }
     },
     bgLayoutImgList: [
       {
