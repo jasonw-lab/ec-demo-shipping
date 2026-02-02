@@ -1,5 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Row, Table, Tag, Tooltip, Typography } from 'antd';
+import { Card, Col, Row, Skeleton, Table, Tag, Tooltip, Typography } from 'antd';
 import {
   InboxOutlined,
   CheckCircleOutlined,
@@ -7,70 +7,65 @@ import {
   ExclamationCircleOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from '@umijs/max';
+import { useNavigate, useRequest } from '@umijs/max';
 import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
 import { ChartCard, Field } from '@/pages/dashboard/analysis/components/Charts';
+import { getSummary, getPriorityShippings } from '@/services/shipping';
 
 const { Title } = Typography;
-
-// KPI データ（Issue 503 で API 連携）
-const summaryData = {
-  created: 12,
-  ready: 8,
-  shippedToday: 25,
-  returned: 3,
-};
-
-// 要対応発送リスト（Issue 503 で API 連携）
-interface PriorityShipping {
-  id: string;
-  orderId: string;
-  status: string;
-  reason: string;
-  updatedAt: string;
-}
-
-const priorityShippings: PriorityShipping[] = [
-  {
-    id: '1',
-    orderId: 'ORD-2024-001',
-    status: 'RETURNED',
-    reason: '返送対応が必要',
-    updatedAt: '2026-02-01 10:30',
-  },
-  {
-    id: '2',
-    orderId: 'ORD-2024-002',
-    status: 'CREATED',
-    reason: '24時間以上未処理',
-    updatedAt: '2026-01-30 15:20',
-  },
-  {
-    id: '3',
-    orderId: 'ORD-2024-003',
-    status: 'READY',
-    reason: '出荷作業待ち',
-    updatedAt: '2026-02-01 08:00',
-  },
-];
 
 const statusColors: Record<string, string> = {
   CREATED: 'default',
   READY: 'processing',
   SHIPPED: 'success',
+  DELIVERED: 'cyan',
   RETURNED: 'error',
+  CANCELLED: 'warning',
+};
+
+const statusLabels: Record<string, string> = {
+  CREATED: '未着手',
+  READY: '出荷準備中',
+  SHIPPED: '出荷済み',
+  DELIVERED: '配達完了',
+  RETURNED: '返送',
+  CANCELLED: 'キャンセル',
+};
+
+const getPriorityReason = (shipping: ShippingAPI.Shipping): string => {
+  if (shipping.status === 'RETURNED') {
+    return '返送対応が必要';
+  }
+  if (shipping.status === 'CREATED') {
+    const createdAt = dayjs(shipping.created_at);
+    const hoursAgo = dayjs().diff(createdAt, 'hour');
+    if (hoursAgo >= 24) {
+      return `${hoursAgo}時間以上未処理`;
+    }
+    return '未処理';
+  }
+  if (shipping.status === 'READY') {
+    return '出荷作業待ち';
+  }
+  return '';
 };
 
 const ShippingSummary: React.FC = () => {
   const navigate = useNavigate();
 
-  const columns: ColumnsType<PriorityShipping> = [
+  const { data: summaryData, loading: summaryLoading } = useRequest(getSummary);
+  const { data: priorityShippings, loading: priorityLoading } = useRequest(() =>
+    getPriorityShippings(5),
+  );
+
+  const columns: ColumnsType<ShippingAPI.Shipping> = [
     {
       title: '注文ID',
-      dataIndex: 'orderId',
-      key: 'orderId',
-      render: (text: string, record: PriorityShipping) => (
-        <a onClick={() => navigate(`/shipping/list?id=${record.id}`)}>{text}</a>
+      dataIndex: 'order_id',
+      key: 'order_id',
+      render: (text: string, record: ShippingAPI.Shipping) => (
+        <a onClick={() => navigate(`/shipping/list?orderId=${record.order_id}`)}>{text}</a>
       ),
     },
     {
@@ -78,18 +73,19 @@ const ShippingSummary: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={statusColors[status]}>{status}</Tag>
+        <Tag color={statusColors[status]}>{statusLabels[status] || status}</Tag>
       ),
     },
     {
       title: '理由',
-      dataIndex: 'reason',
       key: 'reason',
+      render: (_: unknown, record: ShippingAPI.Shipping) => getPriorityReason(record),
     },
     {
       title: '更新日時',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
+      dataIndex: 'updated_at',
+      key: 'updated_at',
+      render: (value: string) => dayjs(value).format('YYYY-MM-DD HH:mm'),
     },
   ];
 
@@ -120,13 +116,9 @@ const ShippingSummary: React.FC = () => {
                 <InfoCircleOutlined />
               </Tooltip>
             }
-            total={summaryData.created}
-            footer={
-              <Field
-                label="ステータス"
-                value="CREATED"
-              />
-            }
+            loading={summaryLoading}
+            total={summaryData?.created ?? 0}
+            footer={<Field label="ステータス" value="CREATED" />}
             contentHeight={46}
             style={{ cursor: 'pointer' }}
             onClick={() => handleCardClick('CREATED')}
@@ -146,13 +138,9 @@ const ShippingSummary: React.FC = () => {
                 <InfoCircleOutlined />
               </Tooltip>
             }
-            total={summaryData.ready}
-            footer={
-              <Field
-                label="ステータス"
-                value="READY"
-              />
-            }
+            loading={summaryLoading}
+            total={summaryData?.ready ?? 0}
+            footer={<Field label="ステータス" value="READY" />}
             contentHeight={46}
             style={{ cursor: 'pointer' }}
             onClick={() => handleCardClick('READY')}
@@ -168,17 +156,13 @@ const ShippingSummary: React.FC = () => {
             bordered={false}
             title="本日出荷"
             action={
-              <Tooltip title="本日出荷済みの件数">
+              <Tooltip title="本日出荷済みの件数（JST基準）">
                 <InfoCircleOutlined />
               </Tooltip>
             }
-            total={summaryData.shippedToday}
-            footer={
-              <Field
-                label="ステータス"
-                value="SHIPPED"
-              />
-            }
+            loading={summaryLoading}
+            total={summaryData?.shipped_today ?? 0}
+            footer={<Field label="ステータス" value="SHIPPED" />}
             contentHeight={46}
             style={{ cursor: 'pointer' }}
             onClick={() => handleCardClick('SHIPPED')}
@@ -198,13 +182,9 @@ const ShippingSummary: React.FC = () => {
                 <InfoCircleOutlined />
               </Tooltip>
             }
-            total={summaryData.returned}
-            footer={
-              <Field
-                label="ステータス"
-                value="RETURNED"
-              />
-            }
+            loading={summaryLoading}
+            total={summaryData?.returned ?? 0}
+            footer={<Field label="ステータス" value="RETURNED" />}
             contentHeight={46}
             style={{ cursor: 'pointer' }}
             onClick={() => handleCardClick('RETURNED')}
@@ -221,13 +201,18 @@ const ShippingSummary: React.FC = () => {
         style={{ marginTop: 16 }}
         extra={<a onClick={() => navigate('/shipping/list')}>すべて表示</a>}
       >
-        <Table
-          columns={columns}
-          dataSource={priorityShippings}
-          rowKey="id"
-          size="small"
-          pagination={false}
-        />
+        {priorityLoading ? (
+          <Skeleton active paragraph={{ rows: 3 }} />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={priorityShippings || []}
+            rowKey="id"
+            size="small"
+            pagination={false}
+            locale={{ emptyText: '対応が必要な発送はありません' }}
+          />
+        )}
       </Card>
     </PageContainer>
   );
