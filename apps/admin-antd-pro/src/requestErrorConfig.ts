@@ -31,7 +31,9 @@ export const errorConfig: RequestConfig = {
     errorThrower: (res) => {
       const { success, data, errorCode, errorMessage, showType } =
         res as unknown as ResponseStructure;
-      if (!success) {
+      // successプロパティが明示的にfalseの場合のみエラーとして処理
+      // Go APIなどsuccessプロパティがないレスポンスはそのまま通す
+      if (success === false) {
         const error: any = new Error(errorMessage);
         error.name = 'BizError';
         error.info = { errorCode, errorMessage, showType, data };
@@ -100,6 +102,7 @@ export const errorConfig: RequestConfig = {
       // 拦截响应数据，进行个性化处理
       const { data } = response as unknown as ResponseStructure;
 
+      // successプロパティが明示的にfalseの場合のみエラー表示
       if (data?.success === false) {
         message.error('请求失败！');
       }

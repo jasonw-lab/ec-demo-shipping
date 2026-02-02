@@ -46,7 +46,7 @@
 |---|---|---|---|---|
 | [Issue 501](#issue-501-ant-design-プロジェクトセットアップ) | プロジェクトセットアップ | P0 | 0.5日 | 🟢 完了 |
 | [Issue 502](#issue-502-ant-design-レイアウトシステム整備) | レイアウトシステム整備 | P0 | 1日 | 🟢 完了 |
-| [Issue 503](#issue-503-ant-design-ダッシュボード画面) | ダッシュボード画面 | P1 | 0.5〜1日 | 🔴 未着手 |
+| [Issue 503](#issue-503-ant-design-ダッシュボード画面) | ダッシュボード画面 | P1 | 0.5〜1日 | 🟢 完了 |
 | [Issue 504](#issue-504-ant-design-発送一覧画面) | 発送一覧画面 | P1 | 1日 | 🔴 未着手 |
 | [Issue 505](#issue-505-ant-design-発送詳細画面) | 発送詳細画面 | P1 | 0.5〜1日 | 🔴 未着手 |
 
@@ -175,7 +175,7 @@ apps/admin-antd/
 
 ---
 
-## Issue 019: Ant Design ダッシュボード画面
+## Issue 503: Ant Design ダッシュボード画面
 
 ### 概要
 ダッシュボード画面を Ant Design ベースで実装する。
@@ -185,9 +185,9 @@ apps/admin-antd/
 ### Ant Design 固有の実装詳細
 
 #### 1. KPI カード UI
-- Ant Design Card + Statistic コンポーネント
+- ChartCard コンポーネント（既存のダッシュボードコンポーネント活用）
 - クリッカブルデザイン（hover エフェクト）
-- RETURNED カードの警告表示（danger タイプ）
+- RETURNED カードの警告表示（赤色アイコン）
 
 #### 2. 要対応発送リスト UI
 - Ant Design Table コンポーネント
@@ -199,33 +199,32 @@ apps/admin-antd/
 - Mobile: 1列、Tablet: 2列、Desktop: 4列
 
 ### 使用コンポーネント
-- antd: Card, Statistic, Table, Tag (Status Badge), Button, Row, Col, Skeleton
-- TanStack Query: useQuery
-- React Router: useNavigate
+- antd: Card, Table, Tag (Status Badge), Row, Col, Skeleton, Tooltip
+- @umijs/max: useRequest, useNavigate
+- dayjs: 日時フォーマット
 
 ### ファイル構造
 ```
-apps/admin-antd/
+apps/admin-antd-pro/
 └── src/
-    └── features/
+    ├── services/
+    │   └── shipping/
+    │       ├── api.ts           # API クライアント
+    │       ├── typings.d.ts     # 型定義
+    │       └── index.ts
+    └── pages/
         └── shipping/
-            ├── api/
-            │   └── shipping-api.ts        # API クライアント
-            ├── components/
-            │   ├── dashboard.tsx          # メインコンポーネント
-            │   ├── summary-card.tsx       # KPIカード
-            │   └── action-required-list.tsx # 要対応リスト
-            └── types/
-                └── shipping.ts            # 型定義
+            └── summary/
+                └── index.tsx    # ダッシュボード画面
 ```
 
 ### 受け入れ条件
-- [ ] KPI カードが Ant Design デザインで表示される
-- [ ] KPI カードクリックで適切な発送一覧に遷移する
-- [ ] RETURNED カードが警告表示（danger）される
-- [ ] 要対応発送リストが正しく表示される（最大5件）
-- [ ] Light/Dark Mode で正常に表示される
-- [ ] レスポンシブ対応（Mobile / Tablet / Desktop）
+- [x] KPI カードが Ant Design デザインで表示される
+- [x] KPI カードクリックで適切な発送一覧に遷移する
+- [x] RETURNED カードが警告表示（赤色アイコン）される
+- [x] 要対応発送リストが正しく表示される（最大5件）
+- [x] Light/Dark Mode で正常に表示される
+- [x] レスポンシブ対応（Mobile / Tablet / Desktop）
 
 ---
 
