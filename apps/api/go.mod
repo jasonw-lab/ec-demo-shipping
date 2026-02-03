@@ -1,6 +1,8 @@
 module github.com/jasonw-lab/ec-demo-shipping/apps/api
 
-go 1.20
+go 1.23
+
+toolchain go1.24.12
 
 require (
 	github.com/IBM/sarama v1.42.0
