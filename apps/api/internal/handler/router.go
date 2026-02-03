@@ -104,9 +104,36 @@ func corsAddVaryHeader(c *gin.Context, token string) {
 	h.Set("Vary", existing+", "+token)
 }
 
+// SecurityHeadersMiddleware adds security-related HTTP headers
+func SecurityHeadersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Prevent MIME type sniffing
+		c.Header("X-Content-Type-Options", "nosniff")
+		
+		// Prevent clickjacking
+		c.Header("X-Frame-Options", "DENY")
+		
+		// Enable XSS protection (legacy browsers)
+		c.Header("X-XSS-Protection", "1; mode=block")
+		
+		// Referrer policy
+		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+		
+		// Only enable HSTS in production
+		if os.Getenv("ENV") == "production" {
+			c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
+		
+		c.Next()
+	}
+}
+
 // SetupRouter creates and configures the Gin router
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	router := gin.Default()
+
+	// Security headers middleware (applied first)
+	router.Use(SecurityHeadersMiddleware())
 
 	// CORS middleware
 	router.Use(CORSMiddleware())

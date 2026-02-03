@@ -40,6 +40,23 @@ type DatabaseConfig struct {
 // Load loads configuration from environment variables with defaults
 func Load() *Config {
 	loadDotEnv()
+	
+	// In production, enforce required environment variables
+	env := getEnv("ENV", "development")
+	if env == "production" {
+		requiredEnvVars := []string{
+			"DB_HOST",
+			"DB_USER",
+			"DB_PASSWORD",
+			"DB_NAME",
+		}
+		for _, envVar := range requiredEnvVars {
+			if os.Getenv(envVar) == "" {
+				panic(fmt.Sprintf("Required environment variable %s is not set in production", envVar))
+			}
+		}
+	}
+	
 	return &Config{
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),
@@ -48,7 +65,7 @@ func Load() *Config {
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "3306"),
 			User:     getEnv("DB_USER", "root"),
-			Password: getEnv("DB_PASSWORD", "password"),
+			Password: getEnv("DB_PASSWORD", ""),  // Empty default for security
 			DBName:   getEnv("DB_NAME", "shipping"),
 		},
 		Kafka: KafkaConfig{
@@ -96,6 +113,16 @@ func (c *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		c.User,
 		c.Password,
+		c.Host,
+		c.Port,
+		c.DBName,
+	)
+}
+
+// SafeDSN returns a sanitized database connection string (password masked) for logging
+func (c *DatabaseConfig) SafeDSN() string {
+	return fmt.Sprintf("%s:***@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		c.User,
 		c.Host,
 		c.Port,
 		c.DBName,
