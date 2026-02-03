@@ -1,55 +1,15 @@
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import type { ProColumns } from '@ant-design/pro-components';
-import { Tag, Button, Space, message } from 'antd';
-import { useState } from 'react';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { Tag, Button, Space, message, Modal, Select, Popconfirm } from 'antd';
+import { useState, useRef, useCallback } from 'react';
 import { useSearchParams } from '@umijs/max';
+import { ExportOutlined, ReloadOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import ShippingDetailDrawer from './components/ShippingDetailDrawer';
+import { getShippings, updateShipping } from '@/services/shipping';
 
-// 型定義（Issue 504 で共通型に移動）
-interface Shipping {
-  id: string;
-  orderId: string;
-  status: string;
-  carrier: string | null;
-  trackingNumber: string | null;
-  updatedAt: string;
-}
-
-// モックデータ（Issue 504 で API 連携）
-const mockData: Shipping[] = [
-  {
-    id: '1',
-    orderId: 'ORD-2024-001',
-    status: 'READY',
-    carrier: 'YAMATO',
-    trackingNumber: null,
-    updatedAt: '2026-02-01 10:30',
-  },
-  {
-    id: '2',
-    orderId: 'ORD-2024-002',
-    status: 'SHIPPED',
-    carrier: 'SAGAWA',
-    trackingNumber: '1234567890',
-    updatedAt: '2026-02-01 09:15',
-  },
-  {
-    id: '3',
-    orderId: 'ORD-2024-003',
-    status: 'CREATED',
-    carrier: null,
-    trackingNumber: null,
-    updatedAt: '2026-01-31 16:45',
-  },
-  {
-    id: '4',
-    orderId: 'ORD-2024-004',
-    status: 'RETURNED',
-    carrier: 'JAPANPOST',
-    trackingNumber: '9876543210',
-    updatedAt: '2026-02-01 08:00',
-  },
-];
+dayjs.extend(customParseFormat);
 
 const statusColors: Record<string, string> = {
   CREATED: 'default',
@@ -60,6 +20,15 @@ const statusColors: Record<string, string> = {
   CANCELLED: 'warning',
 };
 
+const statusLabels: Record<string, string> = {
+  CREATED: '未着手',
+  READY: '出荷準備中',
+  SHIPPED: '出荷済み',
+  DELIVERED: '配達完了',
+  RETURNED: '返送',
+  CANCELLED: 'キャンセル',
+};
+
 const carrierNames: Record<string, string> = {
   YAMATO: 'ヤマト運輸',
   SAGAWA: '佐川急便',
@@ -68,32 +37,117 @@ const carrierNames: Record<string, string> = {
 
 const ShipmentList: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const actionRef = useRef<ActionType>();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRows, setSelectedRows] = useState<ShippingAPI.Shipping[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedShipping, setSelectedShipping] = useState<Shipping | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [bulkStatusModalOpen, setBulkStatusModalOpen] = useState(false);
+  const [bulkTargetStatus, setBulkTargetStatus] = useState<string>('READY');
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
-  const initialStatus = searchParams.get('status') || 'READY';
+  const initialStatus = searchParams.get('status') || undefined;
 
-  const handleRowClick = (record: Shipping) => {
-    setSelectedShipping(record);
+  const handleRowClick = (record: ShippingAPI.Shipping) => {
+    setSelectedOrderId(record.order_id);
     setDrawerOpen(true);
   };
 
-  const handleBulkAction = (action: string) => {
-    if (selectedRowKeys.length === 0) {
+  const handleDrawerClose = useCallback(() => {
+    setDrawerOpen(false);
+    setSelectedOrderId(null);
+  }, []);
+
+  const handleDrawerUpdate = useCallback(() => {
+    actionRef.current?.reload();
+  }, []);
+
+  const handleBulkStatusChange = async () => {
+    if (selectedRows.length === 0) {
       message.warning('対象を選択してください');
       return;
     }
-    message.info(`${action}: ${selectedRowKeys.length}件を処理します（Issue 504 で実装）`);
+
+    setBulkUpdating(true);
+    const results = await Promise.allSettled(
+      selectedRows.map((row) =>
+        updateShipping(row.order_id, {
+          status: bulkTargetStatus,
+          version: row.version,
+        }),
+      ),
+    );
+
+    const successCount = results.filter((r) => r.status === 'fulfilled').length;
+    const failCount = results.filter((r) => r.status === 'rejected').length;
+
+    if (failCount === 0) {
+      message.success(`${successCount}件のステータスを更新しました`);
+    } else {
+      message.warning(`${successCount}件成功、${failCount}件失敗`);
+    }
+
+    setBulkUpdating(false);
+    setBulkStatusModalOpen(false);
+    setSelectedRowKeys([]);
+    setSelectedRows([]);
+    actionRef.current?.reload();
   };
 
-  const columns: ProColumns<Shipping>[] = [
+  const handleExportCSV = () => {
+    if (selectedRows.length === 0) {
+      message.warning('対象を選択してください');
+      return;
+    }
+
+    const headers = ['注文ID', 'ステータス', '配送業者', '追跡番号', '更新日時'];
+    const csvContent = [
+      headers.join(','),
+      ...selectedRows.map((row) =>
+        [
+          row.order_id,
+          statusLabels[row.status] || row.status,
+          row.carrier ? carrierNames[row.carrier] || row.carrier : '',
+          row.tracking_number || '',
+          row.updated_at,
+        ].join(','),
+      ),
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `shipments_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    message.success(`${selectedRows.length}件をCSVエクスポートしました`);
+  };
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return '-';
+    const strictParsed = dayjs(
+      value,
+      [
+        'YYYY-MM-DD HH:mm:ss.SSS',
+        'YYYY-MM-DD HH:mm:ss',
+        'YYYY-MM-DDTHH:mm:ssZ',
+        'YYYY-MM-DDTHH:mm:ss.SSSZ',
+      ],
+      true,
+    );
+    const parsed = strictParsed.isValid() ? strictParsed : dayjs(value);
+    if (!parsed.isValid() || parsed.year() <= 1) return '-';
+    return parsed.format('YYYY-MM-DD HH:mm');
+  };
+
+  const columns: ProColumns<ShippingAPI.Shipping>[] = [
     {
       title: '注文ID',
-      dataIndex: 'orderId',
-      key: 'orderId',
+      dataIndex: 'order_id',
+      key: 'order_id',
       render: (_, record) => (
-        <a onClick={() => handleRowClick(record)}>{record.orderId}</a>
+        <a onClick={() => handleRowClick(record)}>{record.order_id}</a>
       ),
     },
     {
@@ -111,7 +165,9 @@ const ShipmentList: React.FC = () => {
         CANCELLED: { text: 'キャンセル', status: 'Warning' },
       },
       render: (_, record) => (
-        <Tag color={statusColors[record.status]}>{record.status}</Tag>
+        <Tag color={statusColors[record.status]}>
+          {statusLabels[record.status] || record.status}
+        </Tag>
       ),
     },
     {
@@ -125,36 +181,67 @@ const ShipmentList: React.FC = () => {
         JAPANPOST: { text: '日本郵便' },
       },
       render: (_, record) =>
-        record.carrier ? carrierNames[record.carrier] : '-',
+        record.carrier ? carrierNames[record.carrier] || record.carrier : '-',
     },
     {
       title: '追跡番号',
-      dataIndex: 'trackingNumber',
-      key: 'trackingNumber',
+      dataIndex: 'tracking_number',
+      key: 'tracking_number',
       copyable: true,
-      render: (_, record) => record.trackingNumber || '-',
+      search: false,
+      render: (_, record) => record.tracking_number || '-',
     },
     {
       title: '更新日時',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
+      dataIndex: 'updated_at',
+      key: 'updated_at',
       valueType: 'dateTime',
       sorter: true,
+      search: false,
+      render: (_, record) => formatDateTime(record.updated_at),
+    },
+    {
+      title: 'キーワード',
+      dataIndex: 'keyword',
+      key: 'keyword',
+      hideInTable: true,
+      fieldProps: {
+        placeholder: '注文ID・追跡番号で検索',
+      },
     },
   ];
 
   return (
     <PageContainer>
-      <ProTable<Shipping>
+      <ProTable<ShippingAPI.Shipping>
+        actionRef={actionRef}
         columns={columns}
-        dataSource={mockData}
         rowKey="id"
+        request={async (params, sort) => {
+          const { status, carrier, keyword, current, pageSize } = params;
+          const response = await getShippings({
+            status,
+            carrier,
+            keyword,
+            page: current,
+            size: pageSize,
+          });
+
+          return {
+            data: response.data,
+            success: response.success,
+            total: response.total,
+          };
+        }}
         search={{
           labelWidth: 'auto',
         }}
         rowSelection={{
           selectedRowKeys,
-          onChange: setSelectedRowKeys,
+          onChange: (keys, rows) => {
+            setSelectedRowKeys(keys);
+            setSelectedRows(rows);
+          },
         }}
         tableAlertRender={({ selectedRowKeys }) => (
           <Space>
@@ -163,10 +250,19 @@ const ShipmentList: React.FC = () => {
         )}
         tableAlertOptionRender={() => (
           <Space>
-            <Button size="small" onClick={() => handleBulkAction('ステータス変更')}>
+            <Button
+              size="small"
+              onClick={() => setBulkStatusModalOpen(true)}
+              disabled={selectedRowKeys.length === 0}
+            >
               ステータス変更
             </Button>
-            <Button size="small" onClick={() => handleBulkAction('CSVエクスポート')}>
+            <Button
+              size="small"
+              icon={<ExportOutlined />}
+              onClick={handleExportCSV}
+              disabled={selectedRowKeys.length === 0}
+            >
               CSVエクスポート
             </Button>
           </Space>
@@ -185,11 +281,33 @@ const ShipmentList: React.FC = () => {
           showSizeChanger: true,
         }}
       />
+
       <ShippingDetailDrawer
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        shipping={selectedShipping}
+        onClose={handleDrawerClose}
+        orderId={selectedOrderId}
+        onUpdate={handleDrawerUpdate}
       />
+
+      <Modal
+        title="一括ステータス変更"
+        open={bulkStatusModalOpen}
+        onOk={handleBulkStatusChange}
+        onCancel={() => setBulkStatusModalOpen(false)}
+        confirmLoading={bulkUpdating}
+      >
+        <p>{selectedRowKeys.length}件の発送ステータスを変更します。</p>
+        <Select
+          style={{ width: '100%' }}
+          value={bulkTargetStatus}
+          onChange={setBulkTargetStatus}
+          options={[
+            { value: 'READY', label: '出荷準備中' },
+            { value: 'SHIPPED', label: '出荷済み' },
+            { value: 'DELIVERED', label: '配達完了' },
+          ]}
+        />
+      </Modal>
     </PageContainer>
   );
 };
