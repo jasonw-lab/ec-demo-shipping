@@ -371,35 +371,9 @@ export default function ShippingList() {
       <Grid sx={{ mb: -2.25 }} size={12}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="h5">発送一覧</Typography>
-          <Stack direction="row" spacing={1}>
-            {selected.length > 0 && (
-              <>
-                <Chip label={`${selected.length}件選択中`} size="small" color="primary" />
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<MoreOutlined />}
-                  onClick={handleBulkMenuOpen}
-                >
-                  一括操作
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={bulkMenuOpen}
-                  onClose={handleBulkMenuClose}
-                >
-                  <MenuItem onClick={handleBulkStatusDialogOpen}>ステータス一括変更</MenuItem>
-                  <MenuItem onClick={handleExportCSV}>
-                    <DownloadOutlined style={{ marginRight: 8 }} />
-                    CSVエクスポート
-                  </MenuItem>
-                </Menu>
-              </>
-            )}
-            <IconButton onClick={handleRefresh} size="small">
-              <ReloadOutlined />
-            </IconButton>
-          </Stack>
+          <IconButton onClick={handleRefresh} size="small">
+            <ReloadOutlined />
+          </IconButton>
         </Stack>
       </Grid>
 
@@ -443,6 +417,58 @@ export default function ShippingList() {
           </Stack>
         </MainCard>
       </Grid>
+
+      {/* Bulk Action Bar */}
+      {selected.length > 0 && (
+        <Grid size={12}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              p: 1.5,
+              bgcolor: 'primary.lighter',
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'primary.light'
+            }}
+          >
+            <Chip
+              label={`${selected.length}件選択中`}
+              size="small"
+              color="primary"
+              variant="filled"
+            />
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<MoreOutlined />}
+              onClick={handleBulkMenuOpen}
+            >
+              一括操作
+            </Button>
+            <Menu
+              anchorEl={anchorEl}
+              open={bulkMenuOpen}
+              onClose={handleBulkMenuClose}
+            >
+              <MenuItem onClick={handleBulkStatusDialogOpen}>ステータス一括変更</MenuItem>
+              <MenuItem onClick={handleExportCSV}>
+                <DownloadOutlined style={{ marginRight: 8 }} />
+                CSVエクスポート
+              </MenuItem>
+            </Menu>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+              size="small"
+              variant="text"
+              onClick={() => setSelected([])}
+            >
+              選択解除
+            </Button>
+          </Box>
+        </Grid>
+      )}
 
       {/* Table */}
       <Grid size={12}>
