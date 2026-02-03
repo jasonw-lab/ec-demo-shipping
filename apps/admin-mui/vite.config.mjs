@@ -7,13 +7,21 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const API_URL = env.VITE_APP_BASE_NAME || '/';
   const PORT = 3000;
+  const API_SERVER = env.VITE_API_URL || 'http://localhost:8080';
 
   return {
     base: API_URL,
     server: {
       open: true,
       port: PORT,
-      host: true
+      host: true,
+      proxy: {
+        '/api/v1': {
+          target: API_SERVER,
+          changeOrigin: true,
+          secure: false
+        }
+      }
     },
     preview: {
       open: true,
