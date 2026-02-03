@@ -51,8 +51,8 @@ export interface UpdateParams {
   version: number;
 }
 
-// Mock mode flag - set to false when API is ready
-const USE_MOCK = true;
+// Mock mode flag - set to true for development without API
+const USE_MOCK = false;
 
 // API Base URL
 const API_BASE_URL = '/api/v1';
