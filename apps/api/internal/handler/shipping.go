@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -45,13 +46,13 @@ type ListResponse struct {
 
 // List handles GET /shippings
 func (h *ShippingHandler) List(c *gin.Context) {
-	// Parse query parameters
+	// Parse query parameters with limits
 	filter := &repository.ShippingFilter{
 		Status:  c.Query("status"),
 		Carrier: c.Query("carrier"),
 		Keyword: c.Query("keyword"),
-		Page:    parseIntQuery(c, "page", 1),
-		Size:    parseIntQuery(c, "size", 20),
+		Page:    parseIntQueryWithMax(c, "page", 1, 10000),  // Max 10000 pages
+		Size:    parseIntQueryWithMax(c, "size", 20, 100),   // Max 100 items per page
 	}
 
 	// Get shippings from service
@@ -75,7 +76,27 @@ func (h *ShippingHandler) List(c *gin.Context) {
 	})
 }
 
-// parseIntQuery parses an integer query parameter with a default value
+// parseIntQueryWithMax parses an integer query parameter with default and maximum values
+func parseIntQueryWithMax(c *gin.Context, key string, defaultValue, maxValue int) int {
+	valueStr := c.Query(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+
+	value, err := strconv.Atoi(valueStr)
+	if err != nil || value <= 0 {
+		return defaultValue
+	}
+
+	// Enforce maximum value to prevent resource exhaustion
+	if value > maxValue {
+		return maxValue
+	}
+
+	return value
+}
+
+// parseIntQuery parses an integer query parameter with a default value (deprecated, use parseIntQueryWithMax)
 func parseIntQuery(c *gin.Context, key string, defaultValue int) int {
 	valueStr := c.Query(key)
 	if valueStr == "" {
@@ -93,6 +114,16 @@ func parseIntQuery(c *gin.Context, key string, defaultValue int) int {
 // Get handles GET /shippings/:order_id
 func (h *ShippingHandler) Get(c *gin.Context) {
 	orderID := c.Param("order_id")
+
+	// Validate order_id
+	if !isValidOrderID(orderID) {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Success:      false,
+			ErrorCode:    400,
+			ErrorMessage: "Invalid order_id format",
+		})
+		return
+	}
 
 	// Get shipping from service
 	shipping, err := h.service.GetByOrderID(orderID)
@@ -123,6 +154,16 @@ func (h *ShippingHandler) Get(c *gin.Context) {
 // Update handles PUT /shippings/:order_id
 func (h *ShippingHandler) Update(c *gin.Context) {
 	orderID := c.Param("order_id")
+
+	// Validate order_id
+	if !isValidOrderID(orderID) {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Success:      false,
+			ErrorCode:    400,
+			ErrorMessage: "Invalid order_id format",
+		})
+		return
+	}
 
 	// Parse request body
 	var req service.UpdateShippingRequest
@@ -207,8 +248,8 @@ func (h *ShippingHandler) Summary(c *gin.Context) {
 
 // Priority handles GET /shippings/priority
 func (h *ShippingHandler) Priority(c *gin.Context) {
-	// Parse limit parameter
-	limit := parseIntQuery(c, "limit", 5)
+	// Parse limit parameter with maximum
+	limit := parseIntQueryWithMax(c, "limit", 5, 50)
 
 	// Get priority shippings from service
 	shippings, err := h.service.GetPriorityShippings(limit)
@@ -226,4 +267,16 @@ func (h *ShippingHandler) Priority(c *gin.Context) {
 		Success: true,
 		Data:    shippings,
 	})
+}
+
+// isValidOrderID validates the order_id format
+// Allows alphanumeric characters, hyphens, and underscores
+// Maximum length of 100 characters to prevent resource exhaustion
+func isValidOrderID(orderID string) bool {
+	if orderID == "" || len(orderID) > 100 {
+		return false
+	}
+	// Allow alphanumeric, hyphens, and underscores
+	matched, _ := regexp.MatchString(`^[a-zA-Z0-9_-]+$`, orderID)
+	return matched
 }
