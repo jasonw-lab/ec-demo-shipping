@@ -1,267 +1,139 @@
-# CLAUDE.md
+# Claude CLI 開発ガイドライン
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## プロジェクト固有の情報
+- `AGENT.md` を参照
 
-## Project Overview
+## Rate Limit 対策
 
-Shipping Service (発送管理サービス) - A microservice handling physical logistics (warehouse operations, carrier handoff, delivery tracking) for the ec-demo e-commerce platform. This is separate from order/payment flows.
+### 基本原則
+- **不要な API 呼び出しを減らす**
+  - 同じ情報を何度も取得しない
+  - コンテキストを活用して重複した検索を避ける
+  - ファイル読み込みは必要な範囲を一度に取得する
 
-## Build and Development Commands
+- **複数コマンドは並列実行でまとめる**
+  - 独立した操作は並列で実行する
+  - 複数ファイルの読み込みは一度に行う
+  - 依存関係のない検索は同時に実行する
 
-### Frontend (Admin UI - Next.js)
+### 実装時の注意点
+
+#### ファイル操作
 ```bash
-cd apps/admin-ui
-npm install          # Install dependencies
-npm run dev          # Start development server
-npm run build        # Production build
-npm run lint         # Run linter
+# ❌ 避けるべき: 複数回の小さな読み込み
+read_file(file1, lines 1-10)
+read_file(file1, lines 20-30)
+read_file(file1, lines 40-50)
+
+# ✅ 推奨: 一度に必要な範囲を読み込む
+read_file(file1, lines 1-50)
 ```
 
-### Backend (Shipping API - Go)
+#### 並列実行
 ```bash
-cd apps/api
-go mod tidy          # Install dependencies
-go run cmd/server/main.go  # Run server
-go test ./...        # Run all tests
-go test ./internal/service/...  # Run specific package tests
+# ❌ 避けるべき: 順次実行
+read_file(file1)
+read_file(file2)
+read_file(file3)
+
+# ✅ 推奨: 並列実行
+read_file(file1) + read_file(file2) + read_file(file3)
 ```
 
-The API auto-loads environment variables from `.env` (best-effort). You can override with `ENV_FILE=/path/to/.env`.
-
-## Architecture
-
-```
-[ Admin UI (Next.js + shadcn/ui) ]
-            |
-            | REST API
-            v
-[ Shipping Service (Go / Gin + GORM) ]
-            |
-            | Kafka Events
-            v
-[ Order Service (ec-demo) ]
-```
-
-### Key Architectural Decisions (ADRs)
-
-- **ADR-001**: UI uses hybrid approach - arhamkhnz/next-shadcn-admin-dashboard for layout/skeleton + shadcn/ui Official Blocks for components
-- **ADR-002**: Backend uses Gin (HTTP framework) + GORM (ORM)
-- **ADR-003**: Frontend follows Feature-based architecture (Bulletproof React style) - see structure below
-- **ADR-004**: Kafka + Eventual Consistency for Order↔Shipping integration (not distributed transactions)
-- **ADR-005**: Optimistic Locking with `version` column - returns `409 Conflict` on mismatch
-
-### Frontend Structure (Feature-based / Bulletproof React)
-
-```
-apps/admin-ui/src/
-├── app/                  # Next.js App Router - routing/layout only, no business logic
-│   └── (dashboard)/shipments/page.tsx  # Server Component entry
-├── features/             # Business logic & domain UI
-│   └── shipping/
-│       ├── components/   # Domain-specific UI
-│       ├── api/          # Data fetching (hooks, server actions)
-│       ├── types/        # Domain types
-│       └── index.ts      # Public API (only exports used by other features)
-├── components/           # Shared domain-agnostic components
-│   ├── ui/               # shadcn/ui components
-│   └── layouts/          # Sidebar, Header
-└── lib/                  # Utilities
-```
-
-**Feature encapsulation rule**: Import from `features/<domain>/index.ts` only - no deep imports into internal files.
-
-### Backend Structure (Standard Go Layout)
-
-```
-apps/api/
-├── cmd/server/           # Application entrypoint
-└── internal/
-    ├── domain/           # Domain models
-    ├── handler/          # HTTP handlers (Gin)
-    ├── service/          # Business logic
-    └── infra/            # Repository, Kafka, external integrations
-```
-
-### Shipping Status Lifecycle
-
-`CREATED → READY → SHIPPED → DELIVERED / RETURNED`
-
-## Tech Stack
-
-- **Backend**: Go 1.21+, Gin, GORM, Kafka, MySQL/PostgreSQL
-- **Frontend**: Next.js (App Router), shadcn/ui, Tailwind CSS, TanStack Table
-
-## Claude CLI Issue対応フロー
-
-### 1. ブランチ作成
+#### 編集操作
 ```bash
-git checkout feature/init-app-base
-git checkout -b feature/issue-<番号>-<概要>
+# ❌ 避けるべき: 単一ファイルの複数回編集
+replace_string_in_file(file1, change1)
+replace_string_in_file(file1, change2)
+
+# ✅ 推奨: multi_replace_string_in_file で一括編集
+multi_replace_string_in_file([change1, change2])
 ```
 
-### 2. 実装
-- Issue ファイル (`docs/issues/issue-XXX-*.md`) を確認
-- 1 Issue = 1 ブランチで対応
-- コミットメッセージに Issue 番号を含める
+## ワークフロー原則
 
-### 3. テスト・ビルド確認
-```bash
-# Backend
-cd apps/api && go test ./... && go build ./...
+### 不要な確認をなくす
+- 実装中は確認を求めない
+- 自律的に判断して作業を進める
+- ユーザーの意図を推測して最適な実装を行う
 
-# Frontend
-cd apps/admin-ui && npm run build
-```
+### 最終確認のみ
+- **実装完了後に最後の確認を行う**
+- 完了した内容を簡潔に報告
+- 必要に応じて次のステップを提案
 
-### 3.5. 動作確認（ユーザー目視）
-- **テスト・ビルド完了後、一旦停止する**
-- ユーザーが目視で動作確認を行う
-- **直接コミットは行わない** - ユーザーの確認・承認を待つ
+## コーディング規約
 
-### 4. コミット・プッシュ
-```bash
-git add <files>
-git commit -m "feat(scope): description (issue-XXX)"
-git push -u origin feature/issue-XXX-description
-```
+### ファイル作成・編集
+- 必要なファイルのみ作成する
+- 大規模な変更は計画的に実行する
+- コンテキストを十分に理解してから編集する
 
-### 5. PR作成（Claude CLI で実行）
-```bash
-gh pr create --title "feat(scope): description (issue-XXX)" \
-  --body "## Summary\n- ...\n\n## Test plan\n- [ ] ..." \
-  --base feature/init-app-base
-```
+### エラー処理
+- エラーが発生した場合は自律的に解決を試みる
+- 解決できない場合のみユーザーに報告
+- 代替案を提示する
 
-### 6. PR承認・マージ（GitHub Web UI で実施）
-- Claude CLI では PR 作成まで
-- 承認・マージは GitHub Web UI で手動実施
+### コミュニケーション
+- 簡潔で明確な報告
+- 技術的な詳細は必要な場合のみ
+- 絵文字は使用しない（ユーザー要求がない限り）
+### Git コミット
+- **コミット履歴に「CLAUDE」を残さない**
+- **committer と author に「CLAUDE」を含めない**
+- ユーザーの名前とメールアドレスを使用する
+## チェックリスト
 
-### Rate Limit 対策
-- 不要な API 呼び出しを減らす
-- 複数コマンドは並列実行でまとめる
+### 開発開始前
+- [ ] 要件を正確に理解する
+- [ ] ワークスペース構造を確認する
+- [ ] 関連ファイルを特定する
 
+### 実装中
+- [ ] 並列実行可能な操作をまとめる
+- [ ] 不要な API 呼び出しを避ける
+- [ ] 一度に十分なコンテキストを取得する
 
+### 実装完了後
+- [ ] 変更内容を確認する
+- [ ] テストの必要性を判断する
+- [ ] 簡潔な完了報告を行う
 
+## ベストプラクティス
 
-# Claude Code Execution Rules (Non-Interactive Mode)
+### 効率的な検索
+1. `semantic_search`: 概念的な検索に使用
+2. `grep_search`: 正確な文字列パターンの検索
+3. `file_search`: ファイル名による検索
 
-This repository is configured for **non-interactive execution**.
-The user prefers Claude to proceed automatically without asking for confirmation.
+### 効率的な読み込み
+- 大きめの範囲を一度に読む（小刻みな読み込みを避ける）
+- 並列で複数ファイルを読む
+- grep_search でファイルの概要を把握してから詳細を読む
 
----
+### 効率的な編集
+- `multi_replace_string_in_file` を活用
+- 関連する変更を一括で実行
+- 十分なコンテキスト（前後3-5行）を含める
 
-## 1. General Principles
+## Rate Limit 管理
 
-- Assume all instructions are approved unless explicitly stated otherwise.
-- NEVER ask "Do you want to proceed?" or similar questions.
-- If instructions are ambiguous, make a reasonable assumption and proceed.
-- Focus on implementation speed and correctness.
+### API 呼び出し最適化
+1. **計画フェーズ**: 最小限の検索で全体像を把握
+2. **実装フェーズ**: 並列実行で効率化
+3. **検証フェーズ**: 必要な確認のみ実施
 
----
+### モニタリング
+- 不要な重複呼び出しがないか常に意識
+- 複数の小さな操作を統合できないか検討
+- 効率的なツール選択を心がける
 
-## 2. File Operations
+## Issue対応フロー
+- `AGENT.md` を参照
 
-You MUST proceed automatically for:
-- Creating new files
-- Editing existing files
-- Refactoring code
-- Reformatting code
-- Adding or updating documentation
-- Generating test files
-
-You MUST NOT ask for confirmation for any of the above.
-
-You MUST ask BEFORE:
-- Deleting files
-- Renaming files in a way that breaks public APIs
-- Removing large directories
-
----
-
-## 3. Command Execution Rules
-
-You MAY run automatically:
-- go test ./...
-- go build ./...
-- npm install
-- npm run build
-- npm run lint
-- mvn test / mvn package
-- gradle build
-- git status
-- git diff
-- git add .
-
-You MUST NOT ask before running the above commands.
-
-You MUST ask BEFORE:
-- rm -rf
-- docker system prune
-- database migration on production
-- commands affecting production environments
+## Issue一覧
+- `AGENT.md` を参照
 
 ---
 
-## 4. Git Rules
-
-You MUST:
-- Generate commit messages automatically
-- Use Conventional Commits format
-- Include issue numbers if available
-- Proceed with `git commit` without asking
-
-Example commit format:
-feat(shipping): implement delivery fee calculation (#123)
-
-You MAY run automatically:
-- git add .
-- git commit -m "<generated message>"
-
-You MUST ask BEFORE:
-- git push --force
-- git reset --hard
-- rewriting published history
-
----
-
-## 5. Scope of Responsibility
-
-Claude Code is responsible for:
-- Issue implementation
-- Bug fixes
-- Refactoring
-- Test additions
-- Local build verification
-
-Claude Code is NOT responsible for:
-- Final PR approval
-- Production deployment
-- Force operations on git
-
----
-
-## 6. Stop Conditions (Very Limited)
-
-You may STOP and ask the user ONLY if:
-- The request conflicts with previous explicit rules
-- A destructive operation is required
-- Security-sensitive secrets are involved
-
-Otherwise: continue automatically.
-
----
-
-## 7. Style & Quality
-
-- Follow existing project structure and conventions
-- Prefer simple, readable code
-- Do not over-engineer
-- Do not introduce unnecessary dependencies
-- Keep changes minimal and scoped to the task
-
----
-
-## Final Rule (Important)
-
-DO NOT ask for confirmation.
-PROCEED and IMPLEMENT.
+**最終更新**: 2026年1月31日

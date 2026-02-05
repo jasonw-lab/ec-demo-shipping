@@ -1,53 +1,72 @@
-# Horizon UI リファクタリング Issue 管理
+# Horizon UI 実装Issue管理
 
 **作成日**: 2026-01-26  
+**更新日**: 2026-02-01  
 **対象プロジェクト**: Shipping Service Admin UI  
-**リファクタリングスコープ**: apps/admin-horizon-ui への UI 統一  
-**根拠 ADR**: [ADR-006: Horizon UI Shadcn テンプレート採用](../adr/ADR-006-horizon-ui-adoption.md)
+**UIベース**: Horizon UI Shadcn Boilerplate  
+**実装ディレクトリ**: `apps/admin-horizon-ui`  
+**Issue採番範囲**: 2xx  
+**ソースフォルダ構成**: Horizon UI独自の構成に従う  
+**共通仕様**: [UI リファクタリング共通仕様](./ui-refactoring-common.md)  
+**根拠 ADR**: [ADR-006: UI Template Strategy](../adr/ADR-006-multi-ui-template.md)
 
 ---
 
-## 📋 リファクタリング概要
+## 📋 Horizon UI 実装概要
 
-### 目的
-現在のハイブリッド UI 構成（arhamkhnz + shadcn Blocks）から、**Horizon UI Shadcn Boilerplate** に統一することで、以下を実現する：
+### Horizon UI の特徴
+- **商用品質**: 30+コンポーネント、充実ドキュメント
+- **プロダクション実績**: 複数SaaSで採用
+- **AI Agent対応**: 明確な構造、実装精度高
+- **公式URL**: https://horizon-ui.com/shadcn-ui
 
-- UI/UX の一貫性向上
-- 保守性の改善（単一ソース管理）
-- 開発効率の向上（明確な UI パターン）
-- ダークモード完全対応
-
-### 基本方針
-- **段階的移行**: 画面単位で順次リファクタリング
-- **機能保証**: 既存機能の動作を完全に保証（API 層・ビジネスロジック層は変更なし）
-- **並行稼働**: `apps/admin-ui` を一時的に保持（ロールバック可能）
+### Horizon UI 実装方針
 - **🎨 Horizon UI スタイル維持（重要）**: レイアウト・テーマシステムは変更しない
   - Horizon UI のソースコードをベースに開発
   - 全体的な画面スタイル・レイアウトシステムは維持
   - **テーマ色の一貫性保証**: Horizon UI 定義のカラーパレットのみ使用
   - 個別コンポーネントの variant 指定は許容（Horizon UI の variant のみ）
 
+- **♻️ Horizon UI 既存コンポーネント優先利用**:
+  1. **Horizon UI の既存コンポーネント・パーツを最大限利用**（最優先）
+     - `apps/admin-horizon-ui/components/` 配下の既存コンポーネント
+     - `apps/admin-horizon-ui/components/ui/` 配下のUIコンポーネント
+     - Horizon UI Boilerplate 提供のレイアウト・機能コンポーネント
+  2. **shadcn/ui標準コンポーネントを追加**（Horizon UIに存在しない場合）
+     - Horizon UI のテーマに準拠してインストール
+     - `npx shadcn@latest add {component-name}`
+  3. **新規作成は最小限**（上記のいずれも適用できない場合のみ）
+     - Horizon UI のスタイルガイドに厳密に準拠
+     - Tech Leadの承認必須
+
+**機能要件は全UIベースで共通**です。詳細は [UI リファクタリング共通仕様](./ui-refactoring-common.md) を参照してください。
+
 ---
 
 ## 🎯 Issue 一覧
 
+**機能要件は [共通仕様](./ui-refactoring-common.md) を参照**してください。  
+以下は Horizon UI 固有の実装詳細のみを記載します。
+
 | Issue ID | 画面/機能 | 優先度 | 工数見積 | ステータス |
 |---|---|---|---|---|
-| [Issue 013](#issue-013-レイアウトシステム統一) | レイアウトシステム統一 | P0 | 1日 | 🔴 未着手 |
-| [Issue 014](#issue-014-ダッシュボード画面-horizon-ui-移行) | ダッシュボード画面 | P1 | 0.5〜1日 | 🔴 未着手 |
-| [Issue 015](#issue-015-発送一覧画面-horizon-ui-移行) | 発送一覧画面 | P1 | 1日 | 🔴 未着手 |
-| [Issue 016](#issue-016-発送詳細画面-horizon-ui-移行) | 発送詳細画面 | P1 | 0.5〜1日 | 🔴 未着手 |
+| [Issue 201](#issue-201-horizon-ui-レイアウトシステム整備) | レイアウトシステム整備 | P0 | 1日 | 🔴 未着手 |
+| [Issue 202](#issue-202-horizon-ui-ダッシュボード画面実装) | ダッシュボード画面 | P1 | 0.5〜1日 | 🔴 未着手 |
+| [Issue 203](#issue-203-horizon-ui-発送一覧画面実装) | 発送一覧画面 | P1 | 1日 | 🔴 未着手 |
+| [Issue 204](#issue-204-horizon-ui-発送詳細画面実装) | 発送詳細画面 | P1 | 0.5〜1日 | 🔴 未着手 |
 
 **合計工数見積**: 3〜4日
 
 ---
 
-## Issue 013: レイアウトシステム統一
+## Issue 201: Horizon UI レイアウトシステム整備
 
 ### 概要
 Horizon UI の Layout System（Sidebar / Header / Theme）を基盤として整備し、すべての画面で共通使用する。
 
-### 対応内容
+**機能要件**: [共通仕様 - Phase 1](./ui-refactoring-common.md#phase-1-レイアウトシステム統一) を参照
+
+### Horizon UI 固有の実装詳細
 
 #### 1. Horizon UI Layout System 整備
 - `components/layouts/` に Horizon UI ベースのレイアウトを配置
@@ -127,24 +146,14 @@ apps/admin-horizon-ui/
 
 ---
 
-## Issue 014: ダッシュボード画面 Horizon UI 移行
+## Issue 014: Horizon UI ダッシュボード画面実装
 
 ### 概要
-既存のダッシュボード画面（Issue 010 で拡張済み）を Horizon UI ベースにリファクタリングする。
+ダッシュボード画面を Horizon UI ベースで実装する。
 
-### 機能仕様参照
-本Issueは以下の既存仕様を維持します：
-- **[Issue 010: ダッシュボード画面改善](issue-010-dashboard.md)** - KPI定義、要対応発送リスト仕様
-- **SHIPPED TODAY定義**: JST基準で当日00:00:00〜23:59:59の間にステータスがSHIPPEDに変更された発送
-- **要対応発送の優先度**: ①RETURNED（全件）→ ②CREATED（作成後24h超過）→ ③READY（更新日時の古い順）
-- **データ取得**: `GET /api/v1/shipments/summary` (KPI), `GET /api/v1/shipments/priority?limit=5` (要対応リスト)
+**機能要件**: [共通仕様 - 2-1. ダッシュボード画面](./ui-refactoring-common.md#2-1-ダッシュボード画面) を参照
 
-### 現状の機能（維持が必要）
-- KPI カード表示（CREATED / READY / SHIPPED TODAY / RETURNED）
-- KPI カードからのフィルタ付き遷移
-- 要対応発送リスト表示（最大5件、上記優先度ルールに従う）
-
-### 対応内容
+### Horizon UI 固有の実装詳細
 
 #### 1. KPI カード UI 変更
 - Horizon UI の Card コンポーネントを使用
@@ -243,32 +252,16 @@ apps/admin-horizon-ui/
 
 ---
 
-## Issue 015: 発送一覧画面 Horizon UI 移行
+## Issue 015: Horizon UI 発送一覧画面実装
 
 ### 概要
-既存の発送一覧画面（Issue 011 で拡張済み）を Horizon UI ベースにリファクタリングする。
+発送一覧画面を Horizon UI ベースで実装する。
 
-### 機能仕様参照
-本Issueは以下の既存仕様を維持します：
-- **[Issue 011: 発送一覧画面操作性改善](issue-011-shipping-list.md)** - フィルタ、ソート、一括操作の詳細仕様
-- **一括操作トランザクション方針**: 部分成功方式（業務継続性優先）
-  - API: `PATCH /api/v1/shipments/bulk` は成功/失敗を個別に返却
-  - 楽観ロック: 各行のversionを送信、競合時は409を個別返却
-  - UI表示: 結果サマリをToastで表示、失敗行はテーブル上でハイライト
-  - 失敗行の「再試行」機能を提供
-- **データ取得**: `GET /api/v1/shipments?page={n}&limit=20&sort=updated_at&order=desc`
+**機能要件**: [共通仕様 - 2-2. 発送一覧画面](./ui-refactoring-common.md#2-2-発送一覧画面) を参照
 
-### 現状の機能（維持が必要）
-- 発送データテーブル表示（ステータス / 注文ID / 配送業者 / 更新日時）
-- 行クリックで発送詳細 Sheet 表示
-- フィルタバー（ステータス / 配送業者 / 日付範囲）
-- ソート機能（各列クリック）
-- ページネーション
-- 一括操作（複数行選択 → ステータス変更、上記トランザクション方針に従う）
+### Horizon UI 固有の実装詳細
 
-### 対応内容
-
-#### 1. データテーブル UI 変更
+#### 1. データテーブル UI 実装
 - Horizon UI の Table コンポーネントを使用
 - 行クリック時のインタラクション改善（hover エフェクト強化）
 - ステータスバッジのデザイン統一
@@ -386,32 +379,16 @@ apps/admin-horizon-ui/
 
 ---
 
-## Issue 016: 発送詳細画面 Horizon UI 移行
+## Issue 016: Horizon UI 発送詳細画面実装
 
 ### 概要
-既存の発送詳細画面（Issue 012 で拡張済み）を Horizon UI ベースにリファクタリングする。
+発送詳細画面を Horizon UI ベースで実装する。
 
-### 機能仕様参照
-本Issueは以下の既存仕様を維持します：
-- **[Issue 012: 発送詳細画面情報拡充](issue-012-shipping-detail.md)** - タイムライン、配送情報、監査ログ、操作エリアの詳細仕様
-- **タイムライン取得**: `GET /api/v1/shipments/{id}/timeline` - 監査ログから復元
-- **監査ログ取得**: `GET /api/v1/shipments/{id}/audit-logs?limit=10&offset=0` - 最新10件ずつ読み込み
-- **配送業者追跡URL**: フロントエンド定数で管理（YAMATO, SAGAWA, JAPANPOST）
-- **楽観ロック**: バージョン管理によるVERSION_CONFLICT検知
-- **返送処理**: ステータスをRETURNEDに変更のみ（後続業務連携は別Issue）
+**機能要件**: [共通仕様 - 2-3. 発送詳細画面](./ui-refactoring-common.md#2-3-発送詳細画面) を参照
 
-### 現状の機能（維持が必要）
-- Sheet（サイドドロワー）での詳細表示
-- 基本情報表示（注文ID / ステータス / 配送業者 / 住所）
-- タイムライン表示（ステータス変更履歴、監査ログから復元）
-- 配送情報表示（追跡番号 / 配送予定日、業者別外部リンク）
-- 監査ログ表示（更新者 / 更新日時、最新10件 + 追加読み込み）
-- ステータス変更フォーム（ステータス別の入力項目）
-- 楽観ロック対応（バージョン管理）
+### Horizon UI 固有の実装詳細
 
-### 対応内容
-
-#### 1. Sheet デザイン変更
+#### 1. Sheet デザイン実装
 - Horizon UI の Sheet コンポーネントを使用
 - セクション区切りの視認性向上（Card コンポーネント使用）
 - アクションボタンの配置最適化（Sheet Footer に固定）
@@ -664,7 +641,7 @@ apps/admin-horizon-ui/
 ## 📚 参考資料
 
 ### プロジェクト資料
-- [ADR-006: Horizon UI Shadcn テンプレート採用](../adr/ADR-006-horizon-ui-adoption.md)
+- [ADR-006: UI Template Strategy](../adr/ADR-006-multi-ui-template.md)
 - [ADR-001: UI フレームワーク選定](../adr/ADR-001-ui-framework.md)
 - [ADR-003: UI アプリアーキテクチャ](../adr/ADR-003-ui-architecture.md)
 - [ui-dashboard-design.md](../architecture/ui-dashboard-design.md)

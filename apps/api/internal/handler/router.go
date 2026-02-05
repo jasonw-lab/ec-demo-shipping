@@ -120,18 +120,23 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	shippingService := service.NewShippingService(shippingRepo)
 	shippingHandler := NewShippingHandler(shippingService)
 
-	// Shipping endpoints
+	// API v1 group
+	v1 := router.Group("/api/v1")
+	{
+		// Shipping endpoints
+		v1.GET("/shipments", shippingHandler.List)
+		v1.GET("/shipments/summary", shippingHandler.Summary)   // Summary must be before :order_id
+		v1.GET("/shipments/priority", shippingHandler.Priority) // Priority must be before :order_id
+		v1.GET("/shipments/:order_id", shippingHandler.Get)
+		v1.PUT("/shipments/:order_id", shippingHandler.Update)
+	}
+
+	// Legacy endpoints (for backward compatibility)
 	router.GET("/shippings", shippingHandler.List)
-	router.GET("/shippings/summary", shippingHandler.Summary)   // Summary must be before :order_id
-	router.GET("/shippings/priority", shippingHandler.Priority) // Priority must be before :order_id
+	router.GET("/shippings/summary", shippingHandler.Summary)
+	router.GET("/shippings/priority", shippingHandler.Priority)
 	router.GET("/shippings/:order_id", shippingHandler.Get)
 	router.PUT("/shippings/:order_id", shippingHandler.Update)
-
-	// API v1 group (for future use)
-	// v1 := router.Group("/api/v1")
-	// {
-	//     // Additional endpoints will be added here
-	// }
 
 	return router
 }

@@ -9,14 +9,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type SortingState,
+  type RowSelectionState,
 } from "@tanstack/react-table";
-import { Copy, Pencil, Truck, Check } from "lucide-react";
+import { Copy, Pencil, Truck, Check, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useState } from "react";
 import type { Shipping, Carrier } from "../types";
 import { StatusBadge } from "./status-badge";
@@ -45,7 +49,8 @@ function formatRelativeTime(dateString: string): string {
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -67,78 +72,180 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-const columns: ColumnDef<Shipping>[] = [
-  {
-    accessorKey: "order_id",
-    header: "注文ID",
-    cell: ({ row }) => (
-      <span className="font-mono text-sm">{row.original.order_id}</span>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: "ステータス",
-    cell: ({ row }) => <StatusBadge status={row.original.status} />,
-  },
-  {
-    accessorKey: "carrier",
-    header: "配送業者",
-    cell: ({ row }) => {
-      const carrier = row.original.carrier as Carrier | null;
-      if (!carrier) return <span className="text-muted-foreground">-</span>;
-      return (
-        <div className="flex items-center gap-2">
-          <Truck className="h-4 w-4" />
-          <span>{carrierLabels[carrier] || carrier}</span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "tracking_number",
-    header: "追跡番号",
-    cell: ({ row }) => {
-      const tracking = row.original.tracking_number;
-      if (!tracking) return <span className="text-muted-foreground">-</span>;
-      return (
-        <div className="flex items-center gap-1">
-          <span className="font-mono text-sm">{tracking}</span>
-          <CopyButton text={tracking} />
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "updated_at",
-    header: "更新日時",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground text-sm">
-        {formatRelativeTime(row.original.updated_at)}
-      </span>
-    ),
-  },
-  {
-    id: "actions",
-    header: "操作",
-    cell: ({ row }) => (
-      <Button variant="ghost" size="icon" className="h-8 w-8">
-        <Pencil className="h-4 w-4" />
-      </Button>
-    ),
-  },
-];
+function SortHeader({ column, children }: { column: any; children: React.ReactNode }) {
+  const isSorted = column.getIsSorted();
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="-ml-3 h-8 data-[state=open]:bg-accent"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {children}
+      {isSorted === "asc" ? (
+        <ArrowUp className="ml-2 h-4 w-4" />
+      ) : isSorted === "desc" ? (
+        <ArrowDown className="ml-2 h-4 w-4" />
+      ) : (
+        <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
+      )}
+    </Button>
+  );
+}
 
 interface ShippingTableProps {
   data: Shipping[];
   isLoading?: boolean;
   onRowClick?: (orderId: string) => void;
+  enableSelection?: boolean;
+  selectedItems?: Shipping[];
+  onSelectionChange?: (items: Shipping[]) => void;
+  failedOrderIds?: string[];
 }
 
-export function ShippingTable({ data, isLoading, onRowClick }: ShippingTableProps) {
+export function ShippingTable({
+  data,
+  isLoading,
+  onRowClick,
+  enableSelection = false,
+  selectedItems = [],
+  onSelectionChange,
+  failedOrderIds = [],
+}: ShippingTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>(() => {
+    const selection: RowSelectionState = {};
+    selectedItems.forEach((item) => {
+      const index = data.findIndex((d) => d.order_id === item.order_id);
+      if (index >= 0) {
+        selection[index] = true;
+      }
+    });
+    return selection;
+  });
+
+  const columns: ColumnDef<Shipping>[] = [
+    ...(enableSelection
+      ? [
+          {
+            id: "select",
+            header: ({ table }: any) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected() ||
+                  (table.getIsSomePageRowsSelected() && "indeterminate")
+                }
+                onCheckedChange={(value) =>
+                  table.toggleAllPageRowsSelected(!!value)
+                }
+                aria-label="Select all"
+              />
+            ),
+            cell: ({ row }: any) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Select row"
+              />
+            ),
+            enableSorting: false,
+          } as ColumnDef<Shipping>,
+        ]
+      : []),
+    {
+      accessorKey: "order_id",
+      header: ({ column }) => <SortHeader column={column}>注文ID</SortHeader>,
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">{row.original.order_id}</span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => <SortHeader column={column}>ステータス</SortHeader>,
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      accessorKey: "carrier",
+      header: "配送業者",
+      cell: ({ row }) => {
+        const carrier = row.original.carrier as Carrier | null;
+        if (!carrier) return <span className="text-muted-foreground">-</span>;
+        return (
+          <div className="flex items-center gap-2">
+            <Truck className="h-4 w-4" />
+            <span>{carrierLabels[carrier] || carrier}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "tracking_number",
+      header: "追跡番号",
+      cell: ({ row }) => {
+        const tracking = row.original.tracking_number;
+        if (!tracking) return <span className="text-muted-foreground">-</span>;
+        return (
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-sm">{tracking}</span>
+            <CopyButton text={tracking} />
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "updated_at",
+      header: ({ column }) => <SortHeader column={column}>更新日時</SortHeader>,
+      cell: ({ row }) => (
+        <span className="text-muted-foreground text-sm">
+          {formatRelativeTime(row.original.updated_at)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "操作",
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRowClick?.(row.original.order_id);
+          }}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      ),
+    },
+  ];
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    onRowSelectionChange: (updater) => {
+      const newSelection =
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      setRowSelection(newSelection);
+
+      if (onSelectionChange) {
+        const selectedData = Object.keys(newSelection)
+          .filter((key) => newSelection[key])
+          .map((key) => data[parseInt(key)])
+          .filter(Boolean);
+        onSelectionChange(selectedData);
+      }
+    },
+    state: {
+      sorting,
+      rowSelection,
+    },
+    enableRowSelection: enableSelection,
   });
 
   if (isLoading) {
@@ -191,19 +298,25 @@ export function ShippingTable({ data, isLoading, onRowClick }: ShippingTableProp
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
-                onClick={() => onRowClick?.(row.original.order_id)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            table.getRowModel().rows.map((row) => {
+              const isFailed = failedOrderIds.includes(row.original.order_id);
+              return (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={`${onRowClick ? "cursor-pointer hover:bg-muted/50" : ""} ${
+                    isFailed ? "bg-red-50 hover:bg-red-100" : ""
+                  }`}
+                  onClick={() => onRowClick?.(row.original.order_id)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">

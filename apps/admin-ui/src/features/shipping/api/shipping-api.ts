@@ -5,6 +5,10 @@ import type {
   ShippingSummary,
   UpdateShippingRequest,
   ApiError,
+  PriorityShipping,
+  BulkUpdateRequest,
+  BulkUpdateResponse,
+  TimelineEvent,
 } from "../types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -47,7 +51,9 @@ export async function fetchShippingDetail(orderId: string): Promise<Shipping> {
     throw error;
   }
 
-  return response.json();
+  const json = await response.json();
+  // Handle both direct response and {success, data} response formats
+  return json.data ?? json;
 }
 
 export async function updateShipping(
@@ -68,13 +74,15 @@ export async function updateShipping(
     const errorData = await response.json().catch(() => ({}));
     const error: ApiError = {
       status: response.status,
-      message: errorData.message || "Failed to update shipping",
+      message: errorData.message || errorData.errorMessage || "Failed to update shipping",
       errors: errorData.errors,
     };
     throw error;
   }
 
-  return response.json();
+  const json = await response.json();
+  // Handle both direct response and {success, data} response formats
+  return json.data ?? json;
 }
 
 export async function fetchSummary(): Promise<ShippingSummary> {
@@ -86,5 +94,75 @@ export async function fetchSummary(): Promise<ShippingSummary> {
     throw new Error(`Failed to fetch summary: ${response.status}`);
   }
 
+  const json = await response.json();
+  // Handle both direct response and {success, data} response formats
+  return json.data ?? json;
+}
+
+export async function fetchPriorityShippings(
+  limit: number = 5
+): Promise<PriorityShipping[]> {
+  const url = `${API_BASE_URL}/shippings/priority?limit=${limit}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      // If API doesn't exist yet, return empty array for graceful degradation
+      return [];
+    }
+
+    const data = await response.json();
+    // Handle both array and {data: []} response formats
+    return Array.isArray(data) ? data : (data?.data || []);
+  } catch {
+    // Network error or other issues - return empty array
+    return [];
+  }
+}
+
+export async function bulkUpdateShippings(
+  data: BulkUpdateRequest
+): Promise<BulkUpdateResponse> {
+  const url = `${API_BASE_URL}/shippings/bulk`;
+
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error: ApiError = {
+      status: response.status,
+      message: errorData.message || "Failed to bulk update shippings",
+      errors: errorData.errors,
+    };
+    throw error;
+  }
+
   return response.json();
+}
+
+export async function fetchTimeline(orderId: string): Promise<TimelineEvent[]> {
+  const url = `${API_BASE_URL}/shippings/${orderId}/timeline`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      // If API doesn't exist yet, return empty array for graceful degradation
+      return [];
+    }
+
+    const data = await response.json();
+    // Handle both array and {data: []} response formats
+    return Array.isArray(data) ? data : (data?.data || []);
+  } catch {
+    // Network error or other issues - return empty array
+    return [];
+  }
 }
