@@ -1,10 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import { useSummary } from "../api";
 import { SummaryCard } from "./summary-card";
+import { ActionRequiredList } from "./action-required-list";
+import { ShippingDetailSheet } from "./shipping-detail-sheet";
 
 export function Dashboard() {
   const { data, isLoading, error } = useSummary();
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleRowClick = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setIsSheetOpen(true);
+  };
+
+  const handleSheetOpenChange = (open: boolean) => {
+    setIsSheetOpen(open);
+    if (!open) {
+      setSelectedOrderId(null);
+    }
+  };
 
   if (error) {
     return (
@@ -42,6 +59,14 @@ export function Dashboard() {
           isLoading={isLoading}
         />
       </div>
+
+      <ActionRequiredList onRowClick={handleRowClick} />
+
+      <ShippingDetailSheet
+        orderId={selectedOrderId}
+        open={isSheetOpen}
+        onOpenChange={handleSheetOpenChange}
+      />
     </div>
   );
 }

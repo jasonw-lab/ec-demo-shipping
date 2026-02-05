@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { useShippingList } from "../api";
-import type { Carrier, ShippingStatus } from "../types";
+import type { Carrier, Shipping, ShippingStatus, BulkUpdateResponse } from "../types";
 import { FilterBar } from "./filter-bar";
+import { FilterChips } from "./filter-chips";
 import { ShippingTable } from "./shipping-table";
 import { Pagination } from "./pagination";
 import { ShippingDetailSheet } from "./shipping-detail-sheet";
+import { BulkActions } from "./bulk-actions";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -36,11 +38,18 @@ export function ShippingList() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  // Selection state for bulk operations
+  const [selectedItems, setSelectedItems] = useState<Shipping[]>([]);
+  const [failedOrderIds, setFailedOrderIds] = useState<string[]>([]);
+
   // Set initial filter from URL param or default to READY
   useEffect(() => {
     if (!isInitialized) {
       if (urlStatus && validStatuses.includes(urlStatus as ShippingStatus)) {
         setStatus(urlStatus as ShippingStatus);
+      } else if (urlStatus === "") {
+        // Empty status means show all
+        setStatus("");
       } else {
         setStatus("READY");
       }
@@ -61,21 +70,29 @@ export function ShippingList() {
     setCarrier("");
     setKeyword("");
     setPage(1);
+    setSelectedItems([]);
+    setFailedOrderIds([]);
   };
 
   const handleStatusChange = (newStatus: ShippingStatus | "") => {
     setStatus(newStatus);
     setPage(1);
+    setSelectedItems([]);
+    setFailedOrderIds([]);
   };
 
   const handleCarrierChange = (newCarrier: Carrier | "") => {
     setCarrier(newCarrier);
     setPage(1);
+    setSelectedItems([]);
+    setFailedOrderIds([]);
   };
 
   const handleKeywordChange = (newKeyword: string) => {
     setKeyword(newKeyword);
     setPage(1);
+    setSelectedItems([]);
+    setFailedOrderIds([]);
   };
 
   const handleRowClick = (orderId: string) => {
@@ -88,6 +105,42 @@ export function ShippingList() {
     if (!open) {
       setSelectedOrderId(null);
     }
+  };
+
+  const handleSelectionChange = (items: Shipping[]) => {
+    setSelectedItems(items);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedItems([]);
+    setFailedOrderIds([]);
+  };
+
+  const handleBulkUpdateComplete = (response: BulkUpdateResponse) => {
+    const failedIds = response.results
+      .filter((r) => !r.success)
+      .map((r) => r.order_id);
+    setFailedOrderIds(failedIds);
+
+    if (failedIds.length === 0) {
+      setSelectedItems([]);
+    }
+  };
+
+  // Filter chips handlers
+  const handleRemoveStatus = () => {
+    setStatus("");
+    setPage(1);
+  };
+
+  const handleRemoveCarrier = () => {
+    setCarrier("");
+    setPage(1);
+  };
+
+  const handleRemoveKeyword = () => {
+    setKeyword("");
+    setPage(1);
   };
 
   const totalPages = data ? Math.ceil(data.total / DEFAULT_PAGE_SIZE) : 0;
@@ -114,10 +167,29 @@ export function ShippingList() {
         onReset={handleReset}
       />
 
+      <FilterChips
+        status={status}
+        carrier={carrier}
+        keyword={keyword}
+        onRemoveStatus={handleRemoveStatus}
+        onRemoveCarrier={handleRemoveCarrier}
+        onRemoveKeyword={handleRemoveKeyword}
+      />
+
+      <BulkActions
+        selectedItems={selectedItems}
+        onClearSelection={handleClearSelection}
+        onUpdateComplete={handleBulkUpdateComplete}
+      />
+
       <ShippingTable
         data={data?.data || []}
         isLoading={isLoading}
         onRowClick={handleRowClick}
+        enableSelection={true}
+        selectedItems={selectedItems}
+        onSelectionChange={handleSelectionChange}
+        failedOrderIds={failedOrderIds}
       />
 
       {totalPages > 1 && (

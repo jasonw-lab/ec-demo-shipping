@@ -64,3 +64,34 @@ export interface ApiError {
   message: string;
   errors?: ValidationError[];
 }
+
+export interface PriorityShipping extends Shipping {
+  priority_reason: 'RETURNED' | 'CREATED_STALE' | 'READY_OLD';
+}
+
+export interface BulkUpdateRequest {
+  items: Array<{
+    order_id: string;
+    status: ShippingStatus;
+    version: number;
+  }>;
+}
+
+export interface BulkUpdateResultItem {
+  order_id: string;
+  success: boolean;
+  error?: string;
+  new_version?: number;
+}
+
+export interface BulkUpdateResponse {
+  results: BulkUpdateResultItem[];
+  success_count: number;
+  failure_count: number;
+}
+
+export interface TimelineEvent {
+  status: ShippingStatus;
+  timestamp: string;
+  actor?: string;
+}
