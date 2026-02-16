@@ -1,6 +1,6 @@
 # 発送管理システム (Shipping Service) 要件定義
 
-**Version:** 0.2.2  
+**Version:** 0.3.0  
 **Status:** Approved (Architecture Review Applied)
 
 ---
@@ -27,10 +27,17 @@
 3. **配送業者 API 連携は行わない（手動入力のみ）**
 
 ### 2.2 技術制約
-- 認証・認可は BFF / Gateway 側で完結
-- Shipping Service は内部 API として提供
 - Order Service との整合性は Kafka による非同期連携とする
 - 分散トランザクション（Seata / Saga）は使用しない
+
+**認証・認可の段階的実装方針**
+
+| フェーズ | 方針 | 備考 |
+|----------|------|------|
+| Phase 1 (MVP) | Shipping Service **単独**で認証・認可APIを実装 | `/auth/login` 等の認証エンドポイントを Shipping API に内蔵。Admin UI が直接 Shipping API と通信する |
+| Phase 2 | BFF / Gateway との結合 | ユーザー認証を BFF / Gateway / 外部IdP に移譲。Shipping API はトークン検証（リソースサーバー）に徹する |
+
+技術詳細は [ADR-008: 認証・認可技術](../adr/ADR-008-authentication-authorization.md) を参照。
 
 ---
 
@@ -148,5 +155,13 @@ type Shipping struct {
 
 - UI 設計: ui-dashboard-design.md v0.2.2  
 - UI ↔ API I/F: ui-api-interface-mapping.md v0.2.0  
+- ADR-008: 認証・認可技術 v1.2.0  
 
-**Shipping Service 要件定義の最新版（v0.2.2）とする。**
+## 変更履歴
+
+| バージョン | 日付 | 変更内容 |
+|-----------|------|----------|
+| 0.2.2 | — | Architecture Review Applied |
+| 0.3.0 | 2026-02-16 | Section 2.2: 認証・認可の段階的実装方針（Phase 1: 単独実装 / Phase 2: BFF結合）を追加。ADR-008参照を追加 |
+
+**Shipping Service 要件定義の最新版（v0.3.0）とする。**

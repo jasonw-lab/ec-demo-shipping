@@ -2,17 +2,18 @@
 
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShippingDetail, useUpdateShipping } from "../api";
-import type { ApiError, ValidationError } from "../types";
+import type { ApiError, ValidationError, ShippingStatus } from "../types";
 import { ShippingInfo } from "./shipping-info";
+import { StatusTimeline } from "./status-timeline";
 import { StatusActionButton } from "./status-action-button";
 import { ShipForm, type ShipFormData } from "./ship-form";
 
@@ -46,7 +47,7 @@ export function ShippingDetailSheet({
   }, [error, onOpenChange]);
 
   const handleStatusUpdate = async (
-    newStatus: "READY" | "SHIPPED" | "DELIVERED",
+    newStatus: ShippingStatus,
     additionalData?: { carrier?: string; tracking_number?: string }
   ) => {
     if (!shipping) return;
@@ -85,8 +86,9 @@ export function ShippingDetailSheet({
     }
   };
 
-  const handleReadyClick = () => handleStatusUpdate("READY");
-  const handleDeliveredClick = () => handleStatusUpdate("DELIVERED");
+  const handleStatusChange = (newStatus: ShippingStatus) => {
+    handleStatusUpdate(newStatus);
+  };
 
   const handleShipSubmit = (data: ShipFormData) => {
     handleStatusUpdate("SHIPPED", {
@@ -108,6 +110,9 @@ export function ShippingDetailSheet({
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>発送詳細</SheetTitle>
+          <SheetDescription className="sr-only">
+            発送情報の詳細とステータス変更
+          </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
@@ -122,6 +127,8 @@ export function ShippingDetailSheet({
             <>
               <ShippingInfo shipping={shipping} />
 
+              <StatusTimeline shipping={shipping} />
+
               {/* Status-specific actions */}
               <div className="pt-4 border-t space-y-4">
                 {shipping.status === "READY" ? (
@@ -134,8 +141,7 @@ export function ShippingDetailSheet({
                   <StatusActionButton
                     currentStatus={shipping.status}
                     isLoading={updateMutation.isPending}
-                    onReadyClick={handleReadyClick}
-                    onDeliveredClick={handleDeliveredClick}
+                    onStatusChange={handleStatusChange}
                   />
                 )}
               </div>
