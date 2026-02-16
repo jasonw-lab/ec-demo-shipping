@@ -11,6 +11,12 @@
 - `docs/design/ui-dashboard-design.md`
 - `docs/design/ui-api-interface-mapping.md`
 - `docs/design/画面遷移図.drawio`
+- `docs/design/SCR-001-dashboard.md`
+- `docs/design/SCR-002-shipping-list.md`
+- `docs/design/SCR-003-shipping-detail.md`
+- `docs/design/SCR-010-login.md`
+- `docs/design/SCR-020-profile.md`
+- `docs/design/SCR-030-user-management.md`
 
 ### ADR (Architecture Decision Records)
 - `docs/adr/` - 技術選定の意思決定記録

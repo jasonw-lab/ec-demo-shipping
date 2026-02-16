@@ -1,6 +1,6 @@
 # Shipping Service Admin UI Dashboard 設計
 
-**Version:** 0.2.2 (Final + UX Refinements)  
+**Version:** 0.3.0 (User Management Added)  
 **Status:** Approved  
 **Target:** Next.js (App Router) + shadcn/ui  
 
@@ -151,11 +151,19 @@ Dashboard Layout
 
 ```text
 Sidebar
- ├─ Dashboard
- └─ Shipping
+ ├─ Dashboard                    (SCR-001)
+ ├─ Shipping                     (SCR-002)
+ └─ [admin ロールのみ表示]
+     └─ ユーザー管理 (Users)     (SCR-030)
+
+Header (右上)
+ ├─ ユーザー名 / アバター → クリックでプロフィール画面 (SCR-020) へ遷移
+ └─ Logout ボタン → ログアウト処理 → ログイン画面 (SCR-010) へ遷移
 ```
 
-- 設定画面・マスタ管理は MVP 対象外とする。
+- マスタ管理は MVP 対象外とする。
+- ユーザー管理メニューは admin ロールの場合のみサイドバーに表示する。
+- operator / viewer ロールの場合、サイドバーには Dashboard と Shipping のみ表示する。
 
 ---
 
@@ -409,5 +417,12 @@ Square UI (`apps/admin-square-ui`) 実装時の統一ルール：
 
 ---
 
-本設計は、Shipping Service Backend 要件（v0.2.1）と完全に整合しており、  
-**UI設計としての最終版（v0.2.3）**とする。
+## 14. 変更履歴
+
+| Version | 日付 | 変更内容 |
+|---------|------|----------|
+| 0.2.2 | — | Final + UX Refinements |
+| 0.3.0 | 2026-02-16 | Section 7: ナビゲーション構成にユーザー管理（admin専用）・プロフィール・ログアウト遷移を追加。SCR-010/020/030 画面設計書との整合 |
+
+本設計は、Shipping Service Backend 要件（v0.4.0）と完全に整合しており、  
+**UI設計としての最新版（v0.3.0）**とする。
