@@ -189,7 +189,7 @@
 #### 🔧 実装時の優先順位（重要）
 
 **Step 1: 既存コンポーネント調査**
-```bash
+```bashconfig
 # 各UIベースの既存コンポーネントを確認
 ls apps/admin-{ui-base}/components/
 ls apps/admin-{ui-base}/components/ui/
