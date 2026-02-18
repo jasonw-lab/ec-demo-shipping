@@ -90,3 +90,4 @@ docs/plan
 .env
 apps/api/.env
 .claude
+*_qa.md
