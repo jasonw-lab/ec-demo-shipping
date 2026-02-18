@@ -12,6 +12,19 @@ type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Kafka    KafkaConfig
+	JWT      JWTConfig
+}
+
+// JWTConfig holds JWT-related configuration
+type JWTConfig struct {
+	PrivateKeyPath       string // Path to RSA private key PEM file
+	PublicKeyPath        string // Path to RSA public key PEM file
+	PrivateKeyPEM        string // RSA private key PEM (inline, for testing)
+	PublicKeyPEM         string // RSA public key PEM (inline, for testing)
+	Issuer               string
+	Audience             string
+	AccessTokenDuration  int // minutes
+	RefreshTokenDuration int // days
 }
 
 // KafkaConfig holds Kafka-related configuration
@@ -57,6 +70,16 @@ func Load() *Config {
 			OrderTopic:    getEnv("KAFKA_ORDER_TOPIC", "order-events"),
 			DLQTopic:      getEnv("KAFKA_DLQ_TOPIC", "shipping-service-dlq"),
 			Enabled:       getEnvAsBool("KAFKA_ENABLED", false),
+		},
+		JWT: JWTConfig{
+			PrivateKeyPath:       getEnv("JWT_PRIVATE_KEY_PATH", ""),
+			PublicKeyPath:        getEnv("JWT_PUBLIC_KEY_PATH", ""),
+			PrivateKeyPEM:        getEnv("JWT_PRIVATE_KEY_PEM", ""),
+			PublicKeyPEM:         getEnv("JWT_PUBLIC_KEY_PEM", ""),
+			Issuer:               getEnv("JWT_ISSUER", "shipping-service"),
+			Audience:             getEnv("JWT_AUDIENCE", "shipping-service"),
+			AccessTokenDuration:  getEnvAsInt("JWT_ACCESS_TOKEN_DURATION", 15),
+			RefreshTokenDuration: getEnvAsInt("JWT_REFRESH_TOKEN_DURATION", 7),
 		},
 	}
 }

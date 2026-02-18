@@ -115,7 +115,7 @@ func (r *shippingRepository) Update(shipping *domain.Shipping) error {
 			"shipped_at":      shipping.ShippedAt,
 			"delivered_at":    shipping.DeliveredAt,
 			"version":         gorm.Expr("version + 1"),
-			"updated_at":      gorm.Expr("NOW()"),
+			"updated_at":      time.Now(),
 		})
 
 	if result.Error != nil {
