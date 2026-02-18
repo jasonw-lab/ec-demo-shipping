@@ -101,11 +101,13 @@ xxxxx
 ## Issue対応フロー
 
 ### 1. ブランチ作成
-- 最新コードは origin/develop を pull 済み
+
+- 新しいissueに対応するとき、ブランチを現在のbranchから対応用branch新規作成する
 ```bash
 git fetch origin
 ```
 作業ブランチ: feature/issue-<番号>-<概要>
+
 
 
 ### 2. 実装
