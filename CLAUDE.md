@@ -1,139 +1,110 @@
-# Claude CLI 開発ガイドライン
+# CLAUDE.md
 
-## プロジェクト固有の情報
-- `AGENT.md` を参照
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Rate Limit 対策
+## Project Overview
 
-### 基本原則
-- **不要な API 呼び出しを減らす**
-  - 同じ情報を何度も取得しない
-  - コンテキストを活用して重複した検索を避ける
-  - ファイル読み込みは必要な範囲を一度に取得する
+This is the **Shipping Service (発送管理サービス)** for ec-demo - a microservice handling physical logistics workflows (warehouse operations, carrier handoff, delivery tracking) separate from the order/payment domain.
 
-- **複数コマンドは並列実行でまとめる**
-  - 独立した操作は並列で実行する
-  - 複数ファイルの読み込みは一度に行う
-  - 依存関係のない検索は同時に実行する
+**Architecture:**
+- Frontend: Multiple admin UI implementations (Next.js based) for parallel evaluation
+- Backend: Go API with Gin, GORM, MySQL, Kafka event consumption
+- Event-driven: Kafka for async communication with Order Service (ec-demo)
+- Patterns: Optimistic locking (version column), eventual consistency
 
-### 実装時の注意点
+## Build & Run Commands
 
-#### ファイル操作
+### Backend (Go API)
 ```bash
-# ❌ 避けるべき: 複数回の小さな読み込み
-read_file(file1, lines 1-10)
-read_file(file1, lines 20-30)
-read_file(file1, lines 40-50)
-
-# ✅ 推奨: 一度に必要な範囲を読み込む
-read_file(file1, lines 1-50)
+cd apps/api
+go build -o server ./cmd/server      # Build
+go run ./cmd/server                   # Run
+go test ./...                         # Run all tests
+go test ./internal/handler/...        # Run specific package tests
+go test -v ./internal/infra/repository/shipping_repository_test.go  # Single test file
 ```
 
-#### 並列実行
+### Frontend (admin-ui - Next.js + shadcn/ui)
 ```bash
-# ❌ 避けるべき: 順次実行
-read_file(file1)
-read_file(file2)
-read_file(file3)
-
-# ✅ 推奨: 並列実行
-read_file(file1) + read_file(file2) + read_file(file3)
+cd apps/admin-ui
+npm install
+npm run dev      # Development server
+npm run build    # Production build
+npm run lint     # Lint
 ```
 
-#### 編集操作
+### Frontend (admin-next-shadcn)
 ```bash
-# ❌ 避けるべき: 単一ファイルの複数回編集
-replace_string_in_file(file1, change1)
-replace_string_in_file(file1, change2)
-
-# ✅ 推奨: multi_replace_string_in_file で一括編集
-multi_replace_string_in_file([change1, change2])
+cd apps/admin-next-shadcn
+npm install
+npm run dev
+npm run build
+npm run lint        # biome lint
+npm run check:fix   # biome check + fix
 ```
 
-## ワークフロー原則
+## Project Structure
 
-### 不要な確認をなくす
-- 実装中は確認を求めない
-- 自律的に判断して作業を進める
-- ユーザーの意図を推測して最適な実装を行う
+```
+apps/
+├── api/                    # Go backend
+│   ├── cmd/server/         # Application entrypoint
+│   └── internal/
+│       ├── config/         # Configuration loading
+│       ├── domain/         # Domain models
+│       ├── handler/        # HTTP handlers (Gin)
+│       ├── infra/          # Infrastructure layer
+│       │   ├── database/   # DB connection, migrations
+│       │   ├── kafka/      # Kafka consumer, event handlers
+│       │   └── repository/ # Data access (GORM)
+│       └── service/        # Business logic
+├── admin-ui/               # Primary UI (Next.js 14 + shadcn/ui + TanStack Table)
+├── admin-next-shadcn/      # Alternative UI implementation (Issue 1xx)
+├── admin-horizon-ui/       # Alternative UI (Issue 2xx)
+├── admin-square-ui/        # Alternative UI (Issue 3xx)
+├── admin-mui/              # MUI-based UI (Issue 4xx)
+└── admin-antd-pro/         # Ant Design based UI (Issue 5xx)
+docs/
+├── adr/                    # Architecture Decision Records
+├── design/                 # Requirements, screen specs, sequence diagrams
+├── issues/                 # Issue tracking files
+└── plan/                   # Implementation plans
+```
 
-### 最終確認のみ
-- **実装完了後に最後の確認を行う**
-- 完了した内容を簡潔に報告
-- 必要に応じて次のステップを提案
+## Key Design Patterns
 
-## コーディング規約
+- **Shipping Status Lifecycle:** CREATED → READY → SHIPPED → DELIVERED / RETURNED
+- **Optimistic Locking:** All mutations use version column for conflict detection
+- **API-UI Mapping:** See `docs/design/ui-api-interface-mapping.md`
+- **Screen Specs:** `docs/design/SCR-*.md` files
 
-### ファイル作成・編集
-- 必要なファイルのみ作成する
-- 大規模な変更は計画的に実行する
-- コンテキストを十分に理解してから編集する
+## Issue Management Rules
 
-### エラー処理
-- エラーが発生した場合は自律的に解決を試みる
-- 解決できない場合のみユーザーに報告
-- 代替案を提示する
+**Issue numbering by UI:**
+- admin-ui: 0xx (learning/test - not deliverable)
+- next-shadcn: 1xx
+- horizon-ui: 2xx
+- square-ui: 3xx
+- mui: 4xx
+- ant-design: 5xx
 
-### コミュニケーション
-- 簡潔で明確な報告
-- 技術的な詳細は必要な場合のみ
-- 絵文字は使用しない（ユーザー要求がない限り）
-### Git コミット
-- **コミット履歴に「CLAUDE」を残さない**
-- **committer と author に「CLAUDE」を含めない**
-- ユーザーの名前とメールアドレスを使用する
-## チェックリスト
+**One issue = one UI change only.** If UI target is not specified, confirm before proceeding.
 
-### 開発開始前
-- [ ] 要件を正確に理解する
-- [ ] ワークスペース構造を確認する
-- [ ] 関連ファイルを特定する
+## Branch & Commit Convention
 
-### 実装中
-- [ ] 並列実行可能な操作をまとめる
-- [ ] 不要な API 呼び出しを避ける
-- [ ] 一度に十分なコンテキストを取得する
+```bash
+# Branch naming
+git checkout -b feature/issue-<number>-<description>
 
-### 実装完了後
-- [ ] 変更内容を確認する
-- [ ] テストの必要性を判断する
-- [ ] 簡潔な完了報告を行う
+# Commit message format
+feat(scope): description (issue-XXX)
+fix(scope): description (issue-XXX)
+refactor(scope): description (issue-XXX)
+```
 
-## ベストプラクティス
+## Reference Documents
 
-### 効率的な検索
-1. `semantic_search`: 概念的な検索に使用
-2. `grep_search`: 正確な文字列パターンの検索
-3. `file_search`: ファイル名による検索
-
-### 効率的な読み込み
-- 大きめの範囲を一度に読む（小刻みな読み込みを避ける）
-- 並列で複数ファイルを読む
-- grep_search でファイルの概要を把握してから詳細を読む
-
-### 効率的な編集
-- `multi_replace_string_in_file` を活用
-- 関連する変更を一括で実行
-- 十分なコンテキスト（前後3-5行）を含める
-
-## Rate Limit 管理
-
-### API 呼び出し最適化
-1. **計画フェーズ**: 最小限の検索で全体像を把握
-2. **実装フェーズ**: 並列実行で効率化
-3. **検証フェーズ**: 必要な確認のみ実施
-
-### モニタリング
-- 不要な重複呼び出しがないか常に意識
-- 複数の小さな操作を統合できないか検討
-- 効率的なツール選択を心がける
-
-## Issue対応フロー
-- `AGENT.md` を参照
-
-## Issue一覧
-- `AGENT.md` を参照
-
----
-
-**最終更新**: 2026年1月31日
+- Requirements: `docs/design/shipping-service-requirements.md`
+- UI Design: `docs/design/ui-dashboard-design.md`
+- ADRs: `docs/adr/ADR-*.md`
+- Implementation Plan: `docs/plan/plan.md`
