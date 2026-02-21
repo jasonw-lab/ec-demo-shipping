@@ -41,7 +41,16 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
-    return null;
+    return (
+      <div className="flex min-h-svh w-full">
+        <div className="flex w-full flex-col">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b">
+            <div className="h-full w-full px-4 lg:px-6" />
+          </header>
+          <div className="h-full p-4 md:p-6">{children}</div>
+        </div>
+      </div>
+    );
   }
 
   return (

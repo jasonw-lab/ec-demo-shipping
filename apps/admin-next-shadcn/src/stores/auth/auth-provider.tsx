@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 
 import { usePathname, useRouter } from "next/navigation";
 
+import { Loader2 } from "lucide-react";
 import { useStore } from "zustand";
 
 import { apiClient, setAccessToken } from "@/lib/api/client";
@@ -28,6 +29,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const storeRef = useRef<AuthStoreApi | null>(null);
   const sessionCheckedRef = useRef(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -40,25 +42,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const store = storeRef.current;
     if (!store) return;
 
-    // 既にセッションチェック済み、または認証済みの場合はスキップ
+    // 既にセッションチェック済みの場合はスキップ
     if (sessionCheckedRef.current) {
       return;
     }
 
     const checkSession = async () => {
-      // 公開パスの場合はスキップ
+      // 公開パスの場合は即座に初期化完了
       if (isPublicPath(pathname)) {
+        setIsInitialized(true);
         return;
       }
 
       const state = store.getState();
       if (state.isAuthenticated) {
         sessionCheckedRef.current = true;
+        setIsInitialized(true);
         return;
       }
 
       sessionCheckedRef.current = true;
-      store.setState({ isLoading: true });
 
       try {
         // HttpOnly Cookie で Refresh Token があれば、セッション復元を試みる
@@ -80,6 +83,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           isAuthenticated: true,
           isLoading: false,
         });
+
+        setIsInitialized(true);
       } catch {
         // セッション復元失敗: ログイン画面へリダイレクト
         store.setState({ isLoading: false });
@@ -89,6 +94,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     checkSession();
   }, [pathname, router]);
+
+  // 認証初期化完了まで子コンポーネントをレンダリングしない
+  // これにより、API呼び出しが認証完了前に実行されることを防ぐ
+  if (!isInitialized) {
+    return (
+      <AuthStoreContext.Provider value={storeRef.current}>
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthStoreContext.Provider>
+    );
+  }
 
   return <AuthStoreContext.Provider value={storeRef.current}>{children}</AuthStoreContext.Provider>;
 }

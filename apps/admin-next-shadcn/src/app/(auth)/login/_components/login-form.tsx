@@ -54,8 +54,7 @@ function LoginFormContent() {
 
       // ログイン成功: リダイレクト
       const returnUrl = searchParams.get("returnUrl");
-      router.push(returnUrl || "/dashboard");
-      router.refresh();
+      router.replace(returnUrl || "/dashboard/default");
     } catch (err) {
       // パスワードをクリア
       form.setValue("password", "");

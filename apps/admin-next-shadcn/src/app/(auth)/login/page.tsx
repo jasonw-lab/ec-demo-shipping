@@ -22,7 +22,7 @@ function LoginContent() {
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       const returnUrl = searchParams.get("returnUrl");
-      router.replace(returnUrl || "/dashboard");
+      router.replace(returnUrl || "/dashboard/default");
     }
   }, [isAuthenticated, isLoading, router, searchParams]);
 
