@@ -79,9 +79,11 @@ export function ProfileForm() {
 
     setIsSaving(true);
     try {
-      const response = await apiClient.put("/users/me", {
+      // PUT /users/me は存在しないため、PUT /users/:id を使用
+      const response = await apiClient.put(`/users/${profile.id}`, {
         display_name: values.display_name,
-        email: values.email,
+        email: values.email || "",
+        role: profile.roles[0]?.code || "viewer",
         version: profile.version,
       });
 
@@ -162,12 +164,13 @@ export function ProfileForm() {
                 ロール
               </label>
               <div className="flex flex-wrap gap-2" aria-labelledby="role-label">
-                {profile?.roles?.map((role) => (
-                  <Badge key={role.code} variant="secondary">
-                    {role.name}
-                  </Badge>
-                ))}
-                {(!profile?.roles || profile.roles.length === 0) && (
+                {profile?.roles && profile.roles.length > 0 ? (
+                  profile.roles.map((role) => (
+                    <Badge key={role.code} variant="secondary">
+                      {role.name}
+                    </Badge>
+                  ))
+                ) : (
                   <span className="text-muted-foreground text-sm">ロールが設定されていません</span>
                 )}
               </div>
