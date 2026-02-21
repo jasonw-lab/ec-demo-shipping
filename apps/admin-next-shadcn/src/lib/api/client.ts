@@ -121,9 +121,13 @@ function createApiClient(): AxiosInstance {
 
         try {
           const response = await client.post("/auth/refresh");
-          const { access_token, expires_in } = response.data.data;
+          const { access_token, expires_at } = response.data;
 
-          setAccessToken(access_token, expires_in);
+          // expires_at から有効期限を計算
+          const expiresAtMs = new Date(expires_at).getTime();
+          const expiresInSeconds = Math.floor((expiresAtMs - Date.now()) / 1000);
+
+          setAccessToken(access_token, expiresInSeconds);
           onTokenRefreshed(access_token);
 
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
