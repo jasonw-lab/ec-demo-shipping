@@ -50,14 +50,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         // HttpOnly Cookie で Refresh Token があれば、セッション復元を試みる
         const response = await apiClient.post("/auth/refresh");
-        const { access_token, expires_in, user } = response.data.data;
+        const { access_token, expires_at, user } = response.data;
 
-        setAccessToken(access_token, expires_in);
+        // expires_at から有効期限を計算
+        const expiresAtMs = new Date(expires_at).getTime();
+        const expiresInSeconds = Math.floor((expiresAtMs - Date.now()) / 1000);
+
+        setAccessToken(access_token, expiresInSeconds);
 
         store.setState({
           user,
           accessToken: access_token,
-          expiresAt: Date.now() + expires_in * 1000,
+          expiresAt: expiresAtMs,
           isAuthenticated: true,
           isLoading: false,
         });

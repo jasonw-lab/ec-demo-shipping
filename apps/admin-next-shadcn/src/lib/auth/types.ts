@@ -19,15 +19,12 @@ export interface LoginRequest {
   password: string;
 }
 
-/** ログインレスポンス */
+/** ログインレスポンス（API直接形式） */
 export interface LoginResponse {
-  success: boolean;
-  data: {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    user: User;
-  };
+  access_token: string;
+  token_type: string;
+  expires_at: string; // ISO 8601 format
+  user: User;
 }
 
 /** API エラーレスポンス */

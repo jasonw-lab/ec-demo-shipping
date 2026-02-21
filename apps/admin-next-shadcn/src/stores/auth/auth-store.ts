@@ -6,8 +6,8 @@
 import type { AxiosError } from "axios";
 import { createStore } from "zustand/vanilla";
 
-import { apiClient, clearAccessToken, setAccessToken, shouldRefreshToken } from "@/lib/api/client";
-import type { ApiErrorResponse, AuthActions, AuthState, AuthStore, LoginResponse, User } from "@/lib/auth/types";
+import { apiClient, clearAccessToken, setAccessToken } from "@/lib/api/client";
+import type { ApiErrorResponse, AuthState, AuthStore, LoginResponse } from "@/lib/auth/types";
 import { AUTH_ERROR_MESSAGES, AuthError } from "@/lib/auth/types";
 
 /** Silent Refresh のスケジューラ ID */
@@ -17,7 +17,7 @@ let refreshTimerId: ReturnType<typeof setTimeout> | null = null;
  * Silent Refresh をスケジュール
  * Access Token の残り有効期限が2分以下になった時点で自動更新
  */
-function scheduleTokenRefresh(expiresIn: number, refreshFn: () => Promise<void>) {
+function scheduleTokenRefresh(expiresAtMs: number, refreshFn: () => Promise<void>) {
   // 既存のタイマーをクリア
   if (refreshTimerId) {
     clearTimeout(refreshTimerId);
@@ -26,7 +26,8 @@ function scheduleTokenRefresh(expiresIn: number, refreshFn: () => Promise<void>)
 
   // 2分前に更新（最小1秒後）
   const REFRESH_THRESHOLD_MS = 2 * 60 * 1000;
-  const refreshAt = Math.max(expiresIn * 1000 - REFRESH_THRESHOLD_MS, 1000);
+  const timeUntilExpiry = expiresAtMs - Date.now();
+  const refreshAt = Math.max(timeUntilExpiry - REFRESH_THRESHOLD_MS, 1000);
 
   refreshTimerId = setTimeout(async () => {
     try {
@@ -89,22 +90,26 @@ export function createAuthStore(init?: Partial<AuthState>) {
           password,
         });
 
-        const { access_token, expires_in, user } = response.data.data;
+        const { access_token, expires_at, user } = response.data;
+
+        // expires_at から有効期限を計算
+        const expiresAtMs = new Date(expires_at).getTime();
+        const expiresInSeconds = Math.floor((expiresAtMs - Date.now()) / 1000);
 
         // メモリ内にトークン保存
-        setAccessToken(access_token, expires_in);
+        setAccessToken(access_token, expiresInSeconds);
 
         // ストア更新
         set({
           user,
           accessToken: access_token,
-          expiresAt: Date.now() + expires_in * 1000,
+          expiresAt: expiresAtMs,
           isAuthenticated: true,
           isLoading: false,
         });
 
         // Silent Refresh をスケジュール
-        scheduleTokenRefresh(expires_in, get().refreshToken);
+        scheduleTokenRefresh(expiresAtMs, get().refreshToken);
       } catch (error) {
         set({ isLoading: false });
         throw handleAuthError(error as AxiosError<ApiErrorResponse>);
@@ -145,22 +150,26 @@ export function createAuthStore(init?: Partial<AuthState>) {
     refreshToken: async () => {
       try {
         const response = await apiClient.post<LoginResponse>("/auth/refresh");
-        const { access_token, expires_in, user } = response.data.data;
+        const { access_token, expires_at, user } = response.data;
+
+        // expires_at から有効期限を計算
+        const expiresAtMs = new Date(expires_at).getTime();
+        const expiresInSeconds = Math.floor((expiresAtMs - Date.now()) / 1000);
 
         // メモリ内にトークン保存
-        setAccessToken(access_token, expires_in);
+        setAccessToken(access_token, expiresInSeconds);
 
         // ストア更新
         set({
           user,
           accessToken: access_token,
-          expiresAt: Date.now() + expires_in * 1000,
+          expiresAt: expiresAtMs,
           isAuthenticated: true,
         });
 
         // 次の Silent Refresh をスケジュール
-        scheduleTokenRefresh(expires_in, get().refreshToken);
-      } catch (error) {
+        scheduleTokenRefresh(expiresAtMs, get().refreshToken);
+      } catch (_error) {
         // リフレッシュ失敗時はログアウト
         get().clearAuth();
         throw new AuthError("token_expired", AUTH_ERROR_MESSAGES.token_expired, 401);
