@@ -9,7 +9,7 @@ import { Spin } from 'antd';
 import { createStyles } from 'antd-style';
 import React from 'react';
 import { flushSync } from 'react-dom';
-import { outLogin } from '@/services/ant-design-pro/api';
+import { logout } from '@/services/auth/api';
 import HeaderDropdown from '../HeaderDropdown';
 
 export type GlobalHeaderRightProps = {
@@ -45,19 +45,29 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   menu,
   children,
 }) => {
+  const { styles } = useStyles();
+  const { initialState, setInitialState } = useModel('@@initialState');
+
   /**
-   * 退出登录，并且将当前的 url 保存
+   * ログアウト処理
    */
-  const loginOut = async () => {
-    await outLogin();
+  const handleLogout = async () => {
+    // 認証サービスでログアウト
+    await logout();
+
+    // initialState をクリア
+    flushSync(() => {
+      setInitialState((s) => ({ ...s, currentUser: undefined }));
+    });
+
+    // ログインページへリダイレクト
     const { search, pathname } = window.location;
     const urlParams = new URL(window.location.href).searchParams;
     const searchParams = new URLSearchParams({
       redirect: pathname + search,
     });
-    /** 此方法会跳转到 redirect 参数所在的位置 */
     const redirect = urlParams.get('redirect');
-    // Note: There may be security issues, please note
+
     if (window.location.pathname !== '/user/login' && !redirect) {
       history.replace({
         pathname: '/user/login',
@@ -65,17 +75,11 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
       });
     }
   };
-  const { styles } = useStyles();
 
-  const { initialState, setInitialState } = useModel('@@initialState');
-
-  const onMenuClick: MenuProps['onClick'] = (event) => {
+  const onMenuClick: MenuProps['onClick'] = async (event) => {
     const { key } = event;
     if (key === 'logout') {
-      flushSync(() => {
-        setInitialState((s) => ({ ...s, currentUser: undefined }));
-      });
-      loginOut();
+      await handleLogout();
       return;
     }
     history.push(`/account/${key}`);
@@ -109,12 +113,12 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
           {
             key: 'center',
             icon: <UserOutlined />,
-            label: '个人中心',
+            label: '個人センター',
           },
           {
             key: 'settings',
             icon: <SettingOutlined />,
-            label: '个人设置',
+            label: '個人設定',
           },
           {
             type: 'divider' as const,
@@ -124,7 +128,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: '退出登录',
+      label: 'ログアウト',
     },
   ];
 

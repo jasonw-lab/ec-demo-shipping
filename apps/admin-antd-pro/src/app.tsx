@@ -1,6 +1,7 @@
 import { LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
+import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import React from 'react';
@@ -11,60 +12,64 @@ import {
   Question,
   SelectLang,
 } from '@/components';
-import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import type { CurrentUser } from '@/lib/auth/types';
+import { toCurrentUser } from '@/lib/auth/types';
+import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
+import { getCurrentUser, refreshToken } from '@/services/auth/api';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import '@ant-design/v5-patch-for-react-19';
 
-const isDev =
-  process.env.NODE_ENV === 'development' || process.env.CI;
+const isDev = process.env.NODE_ENV === 'development' || process.env.CI;
 const loginPath = '/user/login';
 
 /**
  * @see https://umijs.org/docs/api/runtime-config#getinitialstate
- * */
+ */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
+  currentUser?: CurrentUser;
   loading?: boolean;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  fetchUserInfo?: () => Promise<CurrentUser | undefined>;
 }> {
-  // TODO: 将来ログイン機能を有効化する際は、以下のコメントアウトを解除
-  // const fetchUserInfo = async () => {
-  //   try {
-  //     const msg = await queryCurrentUser({
-  //       skipErrorHandler: true,
-  //     });
-  //     return msg.data;
-  //   } catch (_error) {
-  //     history.push(loginPath);
-  //   }
-  //   return undefined;
-  // };
-  // const { location } = history;
-  // if (
-  //   ![loginPath, '/user/register', '/user/register-result'].includes(
-  //     location.pathname,
-  //   )
-  // ) {
-  //   const currentUser = await fetchUserInfo();
-  //   return {
-  //     fetchUserInfo,
-  //     currentUser,
-  //     settings: defaultSettings as Partial<LayoutSettings>,
-  //   };
-  // }
-
-  // ログイン無効化: ダミーユーザーを返す
-  const mockUser: API.CurrentUser = {
-    name: 'Admin',
-    avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
-    userid: '1',
-    access: 'admin',
+  const fetchUserInfo = async (): Promise<CurrentUser | undefined> => {
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        return toCurrentUser(user);
+      }
+    } catch {
+      // 認証失敗時は何もしない
+    }
+    return undefined;
   };
 
+  const { location } = history;
+
+  // ログインページ以外では認証チェック
+  if (
+    ![loginPath, '/user/register', '/user/register-result'].includes(
+      location.pathname,
+    )
+  ) {
+    const currentUser = await fetchUserInfo();
+    if (!currentUser) {
+      // 未認証の場合はログインページへリダイレクト
+      history.push(loginPath);
+      return {
+        fetchUserInfo,
+        settings: defaultSettings as Partial<LayoutSettings>,
+      };
+    }
+    return {
+      fetchUserInfo,
+      currentUser,
+      settings: defaultSettings as Partial<LayoutSettings>,
+    };
+  }
+
   return {
-    currentUser: mockUser,
+    fetchUserInfo,
     settings: defaultSettings as Partial<LayoutSettings>,
   };
 }
@@ -87,16 +92,15 @@ export const layout: RunTimeLayoutConfig = ({
       },
     },
     waterMarkProps: {
-      // content: initialState?.currentUser?.name,
       content: '',
     },
     footerRender: () => <Footer />,
     onPageChange: () => {
-      // TODO: 将来ログイン機能を有効化する際は、以下のコメントアウトを解除
-      // const { location } = history;
-      // if (!initialState?.currentUser && location.pathname !== loginPath) {
-      //   history.push(loginPath);
-      // }
+      const { location } = history;
+      // ログインページ以外で未認証の場合はリダイレクト
+      if (!initialState?.currentUser && location.pathname !== loginPath) {
+        history.push(loginPath);
+      }
     },
     bgLayoutImgList: [
       {
@@ -127,11 +131,7 @@ export const layout: RunTimeLayoutConfig = ({
         ]
       : [],
     menuHeaderRender: undefined,
-    // 自定义 403 页面
-    // unAccessible: <div>unAccessible</div>,
-    // 增加一个 loading 的状态
     childrenRender: (children) => {
-      // if (initialState?.loading) return <PageLoading />;
       return (
         <>
           {children}
@@ -156,11 +156,38 @@ export const layout: RunTimeLayoutConfig = ({
 };
 
 /**
- * @name request 配置，可以配置错误处理
- * 它基于 axios 和 ahooks 的 useRequest 提供了一套统一的网络请求和错误处理方案。
+ * @name request 配置
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const request: RequestConfig = {
   baseURL: process.env.UMI_APP_API_BASE_URL || '',
+  withCredentials: true, // Cookie を送受信
   ...errorConfig,
+  requestInterceptors: [
+    (config: RequestOptions) => {
+      // Authorization ヘッダーを追加
+      const token = getAccessToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    ...(errorConfig.requestInterceptors || []),
+  ],
+  responseInterceptors: [
+    async (response) => {
+      // 401 エラー時の処理
+      if (response.status === 401) {
+        // トークンリフレッシュを試行
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+          // リフレッシュ失敗時はログアウト
+          clearAccessToken();
+          history.push(loginPath);
+        }
+      }
+      return response;
+    },
+    ...(errorConfig.responseInterceptors || []),
+  ],
 };
