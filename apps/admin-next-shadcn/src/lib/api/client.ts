@@ -121,7 +121,9 @@ function createApiClient(): AxiosInstance {
 
         try {
           const response = await client.post("/auth/refresh");
-          const { access_token, expires_at } = response.data;
+          // Handle both wrapped { data: {...} } and direct response formats
+          const data = response.data.data ?? response.data;
+          const { access_token, expires_at } = data;
 
           // expires_at から有効期限を計算
           const expiresAtMs = new Date(expires_at).getTime();

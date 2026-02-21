@@ -63,7 +63,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         // HttpOnly Cookie で Refresh Token があれば、セッション復元を試みる
         const response = await apiClient.post("/auth/refresh");
-        const { access_token, expires_at, user } = response.data;
+        // Handle both wrapped { data: {...} } and direct response formats
+        const data = response.data.data ?? response.data;
+        const { access_token, expires_at, user } = data;
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();

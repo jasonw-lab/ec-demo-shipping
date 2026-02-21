@@ -85,12 +85,16 @@ export function createAuthStore(init?: Partial<AuthState>) {
       set({ isLoading: true });
 
       try {
-        const response = await apiClient.post<LoginResponse>("/auth/login", {
+        const response = await apiClient.post("/auth/login", {
           username,
           password,
         });
 
-        const { access_token, expires_at, user } = response.data;
+        // Handle both wrapped { data: {...} } and direct response formats
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawData = response.data as any;
+        const data: LoginResponse = rawData.data ?? rawData;
+        const { access_token, expires_at, user } = data;
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();
@@ -149,8 +153,12 @@ export function createAuthStore(init?: Partial<AuthState>) {
      */
     refreshToken: async () => {
       try {
-        const response = await apiClient.post<LoginResponse>("/auth/refresh");
-        const { access_token, expires_at, user } = response.data;
+        const response = await apiClient.post("/auth/refresh");
+        // Handle both wrapped { data: {...} } and direct response formats
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawData = response.data as any;
+        const data: LoginResponse = rawData.data ?? rawData;
+        const { access_token, expires_at, user } = data;
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();
