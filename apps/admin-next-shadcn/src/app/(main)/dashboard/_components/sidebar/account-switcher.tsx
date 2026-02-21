@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { BadgeCheck, Bell, CreditCard, Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, UserCircle } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -63,17 +63,9 @@ export function AccountSwitcher() {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <BadgeCheck />
-            アカウント
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard />
-            請求
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Bell />
-            通知
+          <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
+            <UserCircle />
+            マイプロフィール
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
