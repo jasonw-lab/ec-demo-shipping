@@ -165,9 +165,9 @@ export function ProfileForm() {
               </label>
               <div className="flex flex-wrap gap-2" aria-labelledby="role-label">
                 {profile?.roles && profile.roles.length > 0 ? (
-                  profile.roles.map((role) => (
-                    <Badge key={role.code} variant="secondary">
-                      {role.name}
+                  profile.roles.map((role, index) => (
+                    <Badge key={role.code ?? `role-${index}`} variant="secondary">
+                      {role.name ?? role.code ?? String(role)}
                     </Badge>
                   ))
                 ) : (
@@ -220,14 +220,8 @@ export function ProfileForm() {
                 キャンセル
               </Button>
               <Button type="submit" disabled={isSaving || !form.formState.isDirty}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
-                  </>
-                ) : (
-                  "保存"
-                )}
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? "保存中..." : "保存"}
               </Button>
             </div>
           </form>
