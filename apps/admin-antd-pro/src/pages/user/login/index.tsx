@@ -97,8 +97,8 @@ const Login: React.FC = () => {
         const urlParams = new URL(window.location.href).searchParams;
         const redirect = urlParams.get('redirect');
 
-        // リダイレクト
-        window.location.href = redirect || '/';
+        // SPA内遷移でリダイレクト
+        history.push(redirect || '/');
       }
     } finally {
       setSubmitting(false);
