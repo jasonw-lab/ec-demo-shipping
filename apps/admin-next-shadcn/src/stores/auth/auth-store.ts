@@ -94,7 +94,9 @@ export function createAuthStore(init?: Partial<AuthState>) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawData = response.data as any;
         const data: LoginResponse = rawData.data ?? rawData;
+        console.log("[Auth] Login response data:", JSON.stringify(data, null, 2));
         const { access_token, expires_at, user } = data;
+        console.log("[Auth] Extracted user:", JSON.stringify(user, null, 2));
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();
