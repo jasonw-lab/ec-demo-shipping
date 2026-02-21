@@ -261,10 +261,17 @@ export default [
     name: 'account',
     icon: 'user',
     path: '/account',
+    hideInMenu: true,
     routes: [
       {
         path: '/account',
-        redirect: '/account/center',
+        redirect: '/account/profile',
+      },
+      {
+        name: 'profile',
+        icon: 'user',
+        path: '/account/profile',
+        component: './account/profile',
       },
       {
         name: 'center',
@@ -279,6 +286,13 @@ export default [
         component: './account/settings',
       },
     ],
+  },
+  {
+    name: 'user-management',
+    icon: 'team',
+    path: '/users',
+    access: 'canAdmin',
+    component: './user-management',
   },
   {
     path: '/',
