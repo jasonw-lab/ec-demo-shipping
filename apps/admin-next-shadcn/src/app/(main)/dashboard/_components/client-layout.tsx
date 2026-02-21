@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { users } from "@/data/users";
 import type { SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +69,7 @@ export function ClientLayout({ children, defaultOpen, variant, collapsible }: Cl
             <div className="flex items-center gap-2">
               <LayoutControls />
               <ThemeSwitcher />
-              <AccountSwitcher users={users} />
+              <AccountSwitcher />
             </div>
           </div>
         </header>
@@ -79,4 +78,3 @@ export function ClientLayout({ children, defaultOpen, variant, collapsible }: Cl
     </SidebarProvider>
   );
 }
-
