@@ -144,7 +144,7 @@ func SetupRouterWithConfig(db *gorm.DB, cfg *config.Config) *gin.Engine {
 
 	// Setup auth routes only if authService is configured
 	if authService != nil {
-		authHandler := NewAuthHandler(authService)
+		authHandler := NewAuthHandler(authService, &cfg.JWT)
 
 		// Initialize user service and handler (only when auth is enabled)
 		userService := service.NewUserService(userRepo)

@@ -130,7 +130,7 @@ func setupUserRouter(t *testing.T, db *gorm.DB) *gin.Engine {
 	authService := service.NewAuthService(userRepo, jwtService)
 	userService := service.NewUserService(userRepo)
 
-	authHandler := NewAuthHandler(authService)
+	authHandler := NewAuthHandler(authService, jwtCfg)
 	userHandler := NewUserHandler(userService)
 
 	router := gin.New()
