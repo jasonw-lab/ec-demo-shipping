@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+
 import { ChevronRight } from "lucide-react";
 
+import { DataTable } from "@/components/data-table/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 
 import { priorityColumns } from "./columns.priority";

@@ -2,35 +2,29 @@
 
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { 
-  ExternalLink, 
-  MapPin, 
-  Package, 
-  Truck, 
-  Clock,
-  FileText,
-  CheckCircle2,
-  XCircle,
+import {
   AlertCircle,
   ArrowRight,
-  Calendar,
-  User,
   Box,
-  History
+  Calendar,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  FileText,
+  History,
+  MapPin,
+  Package,
+  Truck,
+  User,
+  XCircle,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 import { getMockAuditLogs, getMockTimeline } from "./api";
 import type { AuditLog, Shipment, TimelineEvent } from "./types";
@@ -76,9 +70,10 @@ export function ShipmentDetailSheet({ shipment, open, onOpenChange }: ShipmentDe
 
   const timeline = getMockTimeline(shipment.id);
   const auditLogs = getMockAuditLogs(shipment.id);
-  const trackingUrl = shipment.carrier && shipment.tracking_number
-    ? CARRIER_TRACKING_URLS[shipment.carrier] + shipment.tracking_number
-    : null;
+  const trackingUrl =
+    shipment.carrier && shipment.tracking_number
+      ? CARRIER_TRACKING_URLS[shipment.carrier] + shipment.tracking_number
+      : null;
 
   const StatusIcon = STATUS_ICONS[shipment.status];
 
@@ -89,7 +84,7 @@ export function ShipmentDetailSheet({ shipment, open, onOpenChange }: ShipmentDe
         <SheetHeader className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background p-6 pb-8">
           <div className="absolute right-0 top-0 size-32 rounded-full bg-primary/5 blur-3xl" />
           <div className="absolute bottom-0 left-0 size-24 rounded-full bg-primary/5 blur-2xl" />
-          
+
           <div className="relative flex items-start justify-between">
             <div className="space-y-2">
               <SheetTitle className="flex items-center gap-3 text-2xl font-bold">
@@ -98,11 +93,9 @@ export function ShipmentDetailSheet({ shipment, open, onOpenChange }: ShipmentDe
                 </div>
                 <span>発送詳細 #{shipment.order_id}</span>
               </SheetTitle>
-              <SheetDescription className="text-base">
-                発送情報と履歴を確認できます
-              </SheetDescription>
+              <SheetDescription className="text-base">発送情報と履歴を確認できます</SheetDescription>
             </div>
-            <Badge 
+            <Badge
               variant={STATUS_VARIANTS[shipment.status]}
               className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold shadow-sm"
             >
@@ -155,7 +148,7 @@ export function ShipmentDetailSheet({ shipment, open, onOpenChange }: ShipmentDe
                       </p>
                     </div>
                   </div>
-                  
+
                   {trackingUrl ? (
                     <a
                       href={trackingUrl}
@@ -291,13 +284,13 @@ function Timeline({ events }: { events: TimelineEvent[] }) {
       {events.map((event, index) => {
         const StatusIcon = STATUS_ICONS[event.status];
         const isLatest = index === events.length - 1;
-        
+
         return (
           <div key={event.id} className="relative group">
             <div
               className={`absolute -left-5 top-2 flex size-5 items-center justify-center rounded-full border-2 transition-all ${
-                isLatest 
-                  ? "border-primary bg-primary shadow-lg shadow-primary/30 scale-110" 
+                isLatest
+                  ? "border-primary bg-primary shadow-lg shadow-primary/30 scale-110"
                   : "border-muted bg-background group-hover:border-primary/50"
               }`}
             >
@@ -351,7 +344,9 @@ function AuditLogList({ logs }: { logs: AuditLog[] }) {
               {Object.entries(log.changes).map(([key, value]) => (
                 <div key={key} className="flex items-center gap-1 text-xs">
                   <span className="text-muted-foreground">{key}:</span>
-                  <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-destructive line-through">{value.old}</span>
+                  <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-destructive line-through">
+                    {value.old}
+                  </span>
                   <ArrowRight className="size-3 text-muted-foreground" />
                   <span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary font-medium">{value.new}</span>
                 </div>

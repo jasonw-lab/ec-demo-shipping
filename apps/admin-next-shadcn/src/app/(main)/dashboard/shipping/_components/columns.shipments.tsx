@@ -4,9 +4,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 
 import type { Shipment } from "./types";
 import { CARRIER_LABELS, STATUS_LABELS, STATUS_VARIANTS } from "./types";
@@ -24,10 +24,7 @@ export const shipmentsColumns: ColumnDef<Shipment>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div
-        className="flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -41,18 +38,14 @@ export const shipmentsColumns: ColumnDef<Shipment>[] = [
   {
     accessorKey: "order_id",
     header: ({ column }) => <DataTableColumnHeader column={column} title="注文ID" />,
-    cell: ({ row }) => (
-      <span className="font-medium">#{row.original.order_id}</span>
-    ),
+    cell: ({ row }) => <span className="font-medium">#{row.original.order_id}</span>,
     enableSorting: true,
   },
   {
     accessorKey: "status",
     header: ({ column }) => <DataTableColumnHeader column={column} title="ステータス" />,
     cell: ({ row }) => (
-      <Badge variant={STATUS_VARIANTS[row.original.status]}>
-        {STATUS_LABELS[row.original.status]}
-      </Badge>
+      <Badge variant={STATUS_VARIANTS[row.original.status]}>{STATUS_LABELS[row.original.status]}</Badge>
     ),
     enableSorting: true,
     filterFn: (row, id, value) => {
@@ -64,11 +57,7 @@ export const shipmentsColumns: ColumnDef<Shipment>[] = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="配送業者" />,
     cell: ({ row }) => {
       const carrier = row.original.carrier;
-      return (
-        <span className="text-muted-foreground">
-          {carrier ? CARRIER_LABELS[carrier] || carrier : "-"}
-        </span>
-      );
+      return <span className="text-muted-foreground">{carrier ? CARRIER_LABELS[carrier] || carrier : "-"}</span>;
     },
     enableSorting: true,
     filterFn: (row, id, value) => {
@@ -79,9 +68,7 @@ export const shipmentsColumns: ColumnDef<Shipment>[] = [
     accessorKey: "tracking_number",
     header: ({ column }) => <DataTableColumnHeader column={column} title="追跡番号" />,
     cell: ({ row }) => (
-      <span className="font-mono text-sm text-muted-foreground">
-        {row.original.tracking_number || "-"}
-      </span>
+      <span className="font-mono text-sm text-muted-foreground">{row.original.tracking_number || "-"}</span>
     ),
     enableSorting: false,
   },

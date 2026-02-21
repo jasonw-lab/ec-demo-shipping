@@ -94,6 +94,36 @@ When creating a PR, include a closing keyword in the PR body to auto-close the c
 - `Fixes #<issue-number>`
 - `Resolves #<issue-number>`
 
+### GitHub Issue タイトルフォーマット
+
+```
+[<app-name>] Issue <番号>: <画面/機能名>（<画面ID>）
+```
+
+**例:**
+- `[admin-next-shadcn] Issue 107: ログイン画面（SCR-010）`
+- `[admin-next-shadcn] Issue 109: ユーザー管理画面（SCR-030）`
+
+`<app-name>` は `apps/` 配下のディレクトリ名に対応:
+- `admin-next-shadcn`, `admin-horizon-ui`, `admin-square-ui`, `admin-mui`, `admin-antd-pro`
+
+### GitHub Issue ラベルルール
+
+| ラベル | 用途 |
+|---|---|
+| `auth` | 認証・認可機能 |
+| `ui` | フロントエンド UI 実装 |
+| `backend` | バックエンド実装 |
+| `api` | API 実装 |
+| `P0` | 最優先（他の実装の前提条件、またはブロッカーあり） |
+| `P1` | 高優先（MVP スコープ） |
+| `enhancement` | 新機能追加全般 |
+
+**ラベル付与方針:**
+- 機能ラベル（`auth`, `ui`, `backend` など）: 該当するものをすべて付与
+- 優先度ラベル（`P0` / `P1`）: 必ず1つ付与
+- `enhancement` は新機能 Issue に常時付与
+
 ## Branch & Commit Convention
 
 ```bash

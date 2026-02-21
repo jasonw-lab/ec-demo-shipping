@@ -116,6 +116,44 @@ git fetch origin
 - コミットメッセージに Issue 番号を含める
 - GitHub Issue も作成する
 
+### GitHub Issue 作成ルール
+
+#### タイトルフォーマット
+```
+[<app-name>] Issue <番号>: <画面/機能名>（<画面ID>）
+```
+**例:**
+- `[admin-next-shadcn] Issue 107: ログイン画面（SCR-010）`
+- `[admin-next-shadcn] Issue 109: ユーザー管理画面（SCR-030）`
+
+`<app-name>` は `apps/` 配下のディレクトリ名:
+- `admin-next-shadcn`, `admin-horizon-ui`, `admin-square-ui`, `admin-mui`, `admin-antd-pro`
+
+#### ラベルルール
+
+| ラベル | 用途 |
+|---|---|
+| `auth` | 認証・認可機能 |
+| `ui` | フロントエンド UI 実装 |
+| `backend` | バックエンド実装 |
+| `api` | API 実装 |
+| `P0` | 最優先（前提条件 / ブロッカー） |
+| `P1` | 高優先（MVP スコープ） |
+| `enhancement` | 新機能追加全般 |
+
+**付与方針:**
+- 機能ラベル（`auth`, `ui`, `backend` など）: 該当するものをすべて付与
+- 優先度ラベル（`P0` / `P1`）: 必ず1つ付与
+- `enhancement` は新機能 Issue に常時付与
+
+#### gh CLI での作成例
+```bash
+gh issue create \
+  --title "[admin-next-shadcn] Issue 107: ログイン画面（SCR-010）" \
+  --label "auth,ui,P0,enhancement" \
+  --body "..."
+```
+
 ### 3. テスト・ビルド確認
 - ビルドエラーがないことを確認
 - テストケースが全て通ることを確認

@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
+
 import { flexRender } from "@tanstack/react-table";
 
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 
 import { shipmentsColumns } from "./columns.shipments";
@@ -116,9 +117,7 @@ export function ShipmentsDataTable({ data: initialData }: ShipmentsDataTableProp
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -140,9 +139,7 @@ export function ShipmentsDataTable({ data: initialData }: ShipmentsDataTableProp
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
@@ -161,11 +158,7 @@ export function ShipmentsDataTable({ data: initialData }: ShipmentsDataTableProp
       <DataTablePagination table={table} />
 
       {/* 詳細シート */}
-      <ShipmentDetailSheet
-        shipment={selectedShipment}
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-      />
+      <ShipmentDetailSheet shipment={selectedShipment} open={sheetOpen} onOpenChange={setSheetOpen} />
     </div>
   );
 }
