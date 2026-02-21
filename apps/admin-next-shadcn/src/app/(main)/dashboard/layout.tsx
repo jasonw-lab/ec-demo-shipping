@@ -40,6 +40,7 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
   }, []);
 
   // Prevent hydration mismatch by not rendering until mounted
+  // Don't render children here to prevent double mount and duplicate API calls
   if (!mounted) {
     return (
       <div className="flex min-h-svh w-full">
@@ -47,7 +48,9 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
           <header className="flex h-12 shrink-0 items-center gap-2 border-b">
             <div className="h-full w-full px-4 lg:px-6" />
           </header>
-          <div className="h-full p-4 md:p-6">{children}</div>
+          <div className="flex h-full items-center justify-center p-4 md:p-6">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
         </div>
       </div>
     );
