@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import Link from "next/link";
 
 import { CircleHelp, ClipboardList, Command, Database, File, Search, Settings } from "lucide-react";
@@ -15,8 +17,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { APP_CONFIG } from "@/config/app-config";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
-import { useAuth } from "@/stores/auth/auth-provider";
+import { type NavGroup, type NavMainItem, sidebarItems } from "@/navigation/sidebar/sidebar-items";
+import { useAuth, usePermissions } from "@/stores/auth/auth-provider";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 import { NavMain } from "./nav-main";
@@ -59,6 +61,23 @@ const _data = {
   ],
 };
 
+/**
+ * ユーザーのロールに基づいてサイドバー項目をフィルタリング
+ */
+function filterSidebarItemsByRole(items: readonly NavGroup[], hasRole: (role: string) => boolean): NavGroup[] {
+  return items
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item: NavMainItem) => {
+        if (item.requiredRole && !hasRole(item.requiredRole)) {
+          return false;
+        }
+        return true;
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow((s) => ({
@@ -68,9 +87,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     })),
   );
   const { user: authUser } = useAuth();
+  const { hasRole } = usePermissions();
 
   const variant = isSynced ? sidebarVariant : props.variant;
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
+
+  // ロールに基づいてサイドバー項目をフィルタリング
+  const filteredSidebarItems = useMemo(() => filterSidebarItemsByRole(sidebarItems, hasRole), [hasRole]);
 
   // 認証済みユーザー情報をNavUser用の形式に変換
   const navUser = {
@@ -94,7 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarItems} />
+        <NavMain items={filteredSidebarItems} />
         {/* <NavDocuments items={data.documents} /> */}
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>

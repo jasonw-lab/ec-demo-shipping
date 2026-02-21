@@ -27,6 +27,7 @@ export interface NavSubItem {
   comingSoon?: boolean;
   newTab?: boolean;
   isNew?: boolean;
+  requiredRole?: string;
 }
 
 export interface NavMainItem {
@@ -37,6 +38,7 @@ export interface NavMainItem {
   comingSoon?: boolean;
   newTab?: boolean;
   isNew?: boolean;
+  requiredRole?: string;
 }
 
 export interface NavGroup {
@@ -152,10 +154,10 @@ export const sidebarItems: NavGroup[] = [
         comingSoon: true,
       },
       {
-        title: "Users",
-        url: "/dashboard/coming-soon",
+        title: "ユーザー管理",
+        url: "/dashboard/users",
         icon: Users,
-        comingSoon: true,
+        requiredRole: "admin",
       },
       {
         title: "Roles",
