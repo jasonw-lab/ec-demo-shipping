@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/config"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/infra/repository"
+	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/middleware"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/service"
 	"gorm.io/gorm"
 )
@@ -106,6 +108,11 @@ func corsAddVaryHeader(c *gin.Context, token string) {
 
 // SetupRouter creates and configures the Gin router
 func SetupRouter(db *gorm.DB) *gin.Engine {
+	return SetupRouterWithConfig(db, nil)
+}
+
+// SetupRouterWithConfig creates and configures the Gin router with config
+func SetupRouterWithConfig(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	router := gin.Default()
 
 	// CORS middleware
@@ -115,23 +122,83 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	healthHandler := NewHealthHandler()
 	router.GET("/health", healthHandler.Check)
 
-	// Initialize repository, service, and handler layers
+	// Initialize repositories
 	shippingRepo := repository.NewShippingRepository(db)
+	userRepo := repository.NewUserRepository(db)
+
+	// Initialize services
 	shippingService := service.NewShippingService(shippingRepo)
+
+	// Initialize JWT and Auth services (only if config is provided)
+	var authService *service.AuthService
+	if cfg != nil && (cfg.JWT.PrivateKeyPath != "" || cfg.JWT.PrivateKeyPEM != "") {
+		jwtService := service.NewJWTService(&cfg.JWT)
+		authService = service.NewAuthService(userRepo, jwtService)
+	}
+
+	// Initialize handlers
 	shippingHandler := NewShippingHandler(shippingService)
 
 	// API v1 group
 	v1 := router.Group("/api/v1")
-	{
-		// Shipping endpoints
+
+	// Setup auth routes only if authService is configured
+	if authService != nil {
+		authHandler := NewAuthHandler(authService)
+
+		// Initialize user service and handler (only when auth is enabled)
+		userService := service.NewUserService(userRepo)
+		userHandler := NewUserHandler(userService)
+
+		// Auth endpoints (public)
+		auth := v1.Group("/auth")
+		{
+			auth.POST("/login", authHandler.Login)
+			auth.POST("/refresh", authHandler.Refresh)
+			auth.POST("/logout", authHandler.Logout)
+		}
+
+		// Protected endpoints
+		protected := v1.Group("")
+		protected.Use(middleware.AuthMiddleware(authService))
+		{
+			// User profile (self)
+			protected.GET("/users/me", authHandler.Me)
+
+			// Shipping endpoints (require shipping:read permission)
+			shipments := protected.Group("/shipments")
+			shipments.Use(middleware.RequirePermission("shipping:read"))
+			{
+				shipments.GET("", shippingHandler.List)
+				shipments.GET("/summary", shippingHandler.Summary)
+				shipments.GET("/priority", shippingHandler.Priority)
+				shipments.GET("/:order_id", shippingHandler.Get)
+			}
+
+			// Shipping update (require shipping:update permission)
+			protected.PUT("/shipments/:order_id", middleware.RequirePermission("shipping:update"), shippingHandler.Update)
+
+			// User management endpoints (require user permissions)
+			users := protected.Group("/users")
+			{
+				users.GET("", middleware.RequirePermission("user:read"), userHandler.List)
+				users.GET("/:id", middleware.RequirePermission("user:read"), userHandler.Get)
+				users.POST("", middleware.RequirePermission("user:create"), userHandler.Create)
+				users.PUT("/:id", middleware.RequirePermission("user:update"), userHandler.Update)
+				users.PUT("/:id/status", middleware.RequirePermission("user:update"), userHandler.UpdateStatus)
+				users.PUT("/:id/password", middleware.RequirePermission("user:update"), userHandler.ResetPassword)
+			}
+		}
+	} else {
+		// No auth configured - expose shipping endpoints without auth (development mode)
 		v1.GET("/shipments", shippingHandler.List)
-		v1.GET("/shipments/summary", shippingHandler.Summary)   // Summary must be before :order_id
-		v1.GET("/shipments/priority", shippingHandler.Priority) // Priority must be before :order_id
+		v1.GET("/shipments/summary", shippingHandler.Summary)
+		v1.GET("/shipments/priority", shippingHandler.Priority)
 		v1.GET("/shipments/:order_id", shippingHandler.Get)
 		v1.PUT("/shipments/:order_id", shippingHandler.Update)
 	}
 
-	// Legacy endpoints (for backward compatibility)
+	// Legacy endpoints (for backward compatibility) - without auth for now
 	router.GET("/shippings", shippingHandler.List)
 	router.GET("/shippings/summary", shippingHandler.Summary)
 	router.GET("/shippings/priority", shippingHandler.Priority)

@@ -1,27 +1,39 @@
 <mxfile host="65bd71144e">
     <diagram id="screen-transition" name="Page-1">
-        <mxGraphModel dx="610" dy="737" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+        <mxGraphModel dx="800" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="screen-login" value="ログイン&#xa;(認証: BFF / Gateway)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#334155;fillColor=#E2E8F0;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="80" width="230" height="80" as="geometry"/>
+                <!-- ============================================ -->
+                <!-- Screens                                       -->
+                <!-- ============================================ -->
+                <mxCell id="screen-login" value="SCR-010&#xa;ログイン&#xa;(ユーザー名 + パスワード)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#334155;fillColor=#E2E8F0;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="200" width="230" height="90" as="geometry"/>
                 </mxCell>
-                <mxCell id="screen-dashboard" value="Dashboard&#xa;(Overview Cards + READY一覧)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#1E293B;fillColor=#DBEAFE;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="60" width="300" height="110" as="geometry"/>
+                <mxCell id="screen-dashboard" value="SCR-001&#xa;Dashboard&#xa;(Overview Cards + READY一覧)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#1E293B;fillColor=#DBEAFE;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="60" width="300" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="screen-shipping" value="Shipping&#xa;(一覧 / 検索 / フィルタ)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#1E293B;fillColor=#DCFCE7;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="220" width="300" height="110" as="geometry"/>
+                <mxCell id="screen-shipping" value="SCR-002&#xa;Shipping&#xa;(一覧 / 検索 / フィルタ)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#1E293B;fillColor=#DCFCE7;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="240" width="300" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="screen-detail" value="発送詳細・編集&#xa;(Sheet / Drawer)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#0F172A;fillColor=#FFF7ED;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="720" y="120" width="320" height="140" as="geometry"/>
+                <mxCell id="screen-detail" value="SCR-003&#xa;発送詳細・編集&#xa;(Sheet / Drawer)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#0F172A;fillColor=#FFF7ED;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="140" width="320" height="140" as="geometry"/>
                 </mxCell>
                 <mxCell id="screen-tracking" value="追跡ページ&#xa;(外部サイト・別タブ)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#475569;fillColor=#F1F5F9;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="720" y="320" width="320" height="90" as="geometry"/>
+                    <mxGeometry x="820" y="340" width="320" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="screen-profile" value="SCR-020&#xa;プロフィール&#xa;(表示名・メール変更 / パスワード変更)" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#1E293B;fillColor=#F0FDF4;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="420" width="300" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="screen-users" value="SCR-030&#xa;ユーザー管理&#xa;(一覧 / 作成 / 編集 / 無効化)&#xa;[admin ロールのみ]" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#1E293B;fillColor=#FEF3C7;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="600" width="300" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="state-toast" value="競合/エラー表示&#xa;(Toast / FormMessage)" style="shape=note;whiteSpace=wrap;html=1;strokeColor=#991B1B;fillColor=#FEE2E2;" parent="1" vertex="1">
-                    <mxGeometry x="720" y="470" width="320" height="90" as="geometry"/>
+                    <mxGeometry x="820" y="500" width="320" height="90" as="geometry"/>
                 </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Login                                  -->
+                <!-- ============================================ -->
                 <mxCell id="edge-login-success" value="ログイン成功" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-login" target="screen-dashboard" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
@@ -30,17 +42,34 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Sidebar Navigation                     -->
+                <!-- ============================================ -->
                 <mxCell id="edge-sidebar-to-shipping" value="Sidebar: Shipping" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-dashboard" target="screen-shipping" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="edge-sidebar-to-dashboard" value="Sidebar: Dashboard" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-shipping" target="screen-dashboard" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
+                <mxCell id="edge-sidebar-to-users" value="Sidebar: Users&#xa;(admin のみ)" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;dashed=0;" parent="1" source="screen-dashboard" target="screen-users" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge-users-to-dashboard" value="Sidebar: Dashboard" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-users" target="screen-dashboard" edge="1">
+                    <mxGeometry x="0.2" y="-60" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Card Click (Dashboard → Shipping)      -->
+                <!-- ============================================ -->
                 <mxCell id="edge-card-filter" value="カードクリック&#xa;(statusで絞込)" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;dashed=1;" parent="1" source="screen-dashboard" target="screen-shipping" edge="1">
                     <mxGeometry x="0.2" y="90" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Detail Sheet                            -->
+                <!-- ============================================ -->
                 <mxCell id="edge-open-detail-from-dashboard" value="注文IDクリック / Edit" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-dashboard" target="screen-detail" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
@@ -57,9 +86,26 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: External Tracking                      -->
+                <!-- ============================================ -->
                 <mxCell id="edge-open-tracking" value="追跡リンク" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-detail" target="screen-tracking" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Profile                                -->
+                <!-- ============================================ -->
+                <mxCell id="edge-header-to-profile" value="Header: ユーザー名クリック" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-dashboard" target="screen-profile" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge-profile-to-dashboard" value="戻る" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="screen-profile" target="screen-dashboard" edge="1">
+                    <mxGeometry x="-0.2" y="40" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Error / Toast                           -->
+                <!-- ============================================ -->
                 <mxCell id="edge-validation-error" value="400: 入力エラー" style="endArrow=block;html=1;rounded=0;strokeColor=#991B1B;" parent="1" source="screen-detail" target="state-toast" edge="1">
                     <mxGeometry x="-0.0476" y="-100" relative="1" as="geometry">
                         <mxPoint as="offset"/>
@@ -72,6 +118,14 @@
                 </mxCell>
                 <mxCell id="edge-reload-latest" value="最新情報を読み込む&#xa;(再取得して再描画)" style="endArrow=block;html=1;rounded=0;strokeColor=#0F172A;" parent="1" source="state-toast" target="screen-detail" edge="1">
                     <mxGeometry x="0.1429" y="-120" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <!-- ============================================ -->
+                <!-- Edges: Token Expiry → Login                   -->
+                <!-- ============================================ -->
+                <mxCell id="edge-token-expired" value="401: トークン期限切れ&#xa;(全画面共通)" style="endArrow=block;html=1;rounded=0;strokeColor=#991B1B;dashed=1;" parent="1" source="screen-shipping" target="screen-login" edge="1">
+                    <mxGeometry x="-0.3" y="-30" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>

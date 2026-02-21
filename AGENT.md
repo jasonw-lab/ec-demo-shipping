@@ -11,6 +11,12 @@
 - `docs/design/ui-dashboard-design.md`
 - `docs/design/ui-api-interface-mapping.md`
 - `docs/design/画面遷移図.drawio`
+- `docs/design/SCR-001-dashboard.md`
+- `docs/design/SCR-002-shipping-list.md`
+- `docs/design/SCR-003-shipping-detail.md`
+- `docs/design/SCR-010-login.md`
+- `docs/design/SCR-020-profile.md`
+- `docs/design/SCR-030-user-management.md`
 
 ### ADR (Architecture Decision Records)
 - `docs/adr/` - 技術選定の意思決定記録
@@ -29,6 +35,14 @@
 - `docs/implementation/` - 実装済み機能のサマリ
 - `docs/issues/` - Issue管理（個別のIssueファイル）
 
+### 実装ガイド
+
+1. **基本方針**: (例: "常に型安全を優先する", "DRY原則の徹底")
+2. **ディレクトリ構成の遵守**: (例: "xxx.rs + xxx/ 構成を守り、mod.rsは使わない")
+3. **命名規則**: (例: "変数名はドメイン駆動設計(DDD)の用語に準拠する")
+4. **エラーハンドリング**: (例: "unwrap()は禁止。必ず適切にエラーを伝搬させる")
+5. **テスト方針**: (例: "新しい関数には必ずユニットテストを付随させる")
+6. **禁止事項**: (例: "循環参照の禁止", "外部ライブラリの無秩序な追加の禁止")
 
 ## プロジェクト固有のルール
 一回のissue対応で複数のUIは変更しない（一つのUI frontソースのみに変更を加える）
@@ -87,11 +101,13 @@ xxxxx
 ## Issue対応フロー
 
 ### 1. ブランチ作成
-- 最新コードは origin/develop を pull 済み
+
+- 新しいissueに対応するとき、ブランチを現在のbranchから対応用branch新規作成する
 ```bash
 git fetch origin
 ```
 作業ブランチ: feature/issue-<番号>-<概要>
+
 
 
 ### 2. 実装

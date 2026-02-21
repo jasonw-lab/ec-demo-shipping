@@ -90,3 +90,8 @@ docs/plan
 .env
 apps/api/.env
 .claude
+*_qa.md
+
+# JWT RSA keys (never commit)
+apps/api/keys/
+*.pem

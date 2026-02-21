@@ -50,8 +50,8 @@ func main() {
 		log.Println("Kafka disabled, skipping consumer initialization")
 	}
 
-	// Setup router
-	router := handler.SetupRouter(db)
+	// Setup router with config
+	router := handler.SetupRouterWithConfig(db, cfg)
 
 	// Handle graceful shutdown
 	go func() {
