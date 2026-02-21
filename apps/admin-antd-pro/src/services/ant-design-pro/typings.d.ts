@@ -21,6 +21,10 @@ declare namespace API {
     };
     address?: string;
     phone?: string;
+    /** ユーザーのロール（Issue 506: 認証基盤） */
+    roles?: string[];
+    /** ユーザーのパーミッション（Issue 506: 認証基盤） */
+    permissions?: string[];
   };
 
   type LoginResult = {
