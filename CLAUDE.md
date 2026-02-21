@@ -89,6 +89,10 @@ docs/
 - ant-design: 5xx
 
 **One issue = one UI change only.** If UI target is not specified, confirm before proceeding.
+When creating a PR, include a closing keyword in the PR body to auto-close the corresponding GitHub issue after merge:
+- `Closes #<issue-number>` (preferred)
+- `Fixes #<issue-number>`
+- `Resolves #<issue-number>`
 
 ## Branch & Commit Convention
 

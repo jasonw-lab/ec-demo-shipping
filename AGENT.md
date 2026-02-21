@@ -148,7 +148,8 @@ gh pr create --title "[Phase X Backend/Frontend] 機能名" \
 
 **重要事項:**
 - **PRは必ずdevelopブランチへ提出する**
-- PR本文に `Closes #X` を記載してIssueと紐付ける
+- PR本文に `Closes #X`（または `Fixes #X` / `Resolves #X`）を**必ず**記載してIssueと紐付ける
+- PR提出前に、該当Issue番号が正しいことを確認する
 - PRがマージされると自動的にIssueがcloseされる
 
 ### 7. PR承認・マージ（GitHub Web UI で実施）
