@@ -1,21 +1,16 @@
+import { apiClient } from "@/lib/api/client";
+
 import type { AuditLog, PriorityShipment, Shipment, ShipmentsResponse, ShippingSummary, TimelineEvent } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
-const IS_LOCAL_API = /localhost|127\.0\.0\.1/.test(API_BASE_URL);
+const IS_LOCAL_API = /localhost|127\.0\.0\.1/.test(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080");
 
 // KPIサマリー取得
 export async function fetchShippingSummary(): Promise<ShippingSummary> {
   try {
-    const res = await fetch(`${API_BASE_URL}/shipments/summary`, {
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      console.error(`Failed to fetch shipping summary: ${res.status} ${res.statusText}`);
-      throw new Error(`Failed to fetch shipping summary: ${res.status}`);
-    }
-
-    return res.json();
+    const res = await apiClient.get("/shipments/summary");
+    // Backend response format: { data: {...} } or direct object
+    const data = res.data;
+    return data.data ?? data;
   } catch (error) {
     console.error("Error fetching shipping summary:", error);
     if (IS_LOCAL_API) {
@@ -29,16 +24,10 @@ export async function fetchShippingSummary(): Promise<ShippingSummary> {
 // 要対応発送リスト取得
 export async function fetchPriorityShipments(limit = 5): Promise<PriorityShipment[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/shipments/priority?limit=${limit}`, {
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      console.error(`Failed to fetch priority shipments: ${res.status} ${res.statusText}`);
-      throw new Error(`Failed to fetch priority shipments: ${res.status}`);
-    }
-
-    return res.json();
+    const res = await apiClient.get(`/shipments/priority?limit=${limit}`);
+    // Backend response format: { data: [...] } or direct array
+    const data = res.data;
+    return Array.isArray(data) ? data : (data.data || []);
   } catch (error) {
     console.error("Error fetching priority shipments:", error);
     if (IS_LOCAL_API) {
@@ -66,22 +55,14 @@ export async function fetchShipments(params?: {
     if (params?.carrier) searchParams.set("carrier", params.carrier);
     if (params?.keyword) searchParams.set("keyword", params.keyword);
 
-    const url = `${API_BASE_URL}/shipments?${searchParams.toString()}`;
+    const url = `/shipments?${searchParams.toString()}`;
     console.log("Fetching shipments from:", url);
 
-    const res = await fetch(url, {
-      cache: "no-store",
-    });
+    const res = await apiClient.get(url);
 
-    console.log("Fetch response status:", res.status, res.statusText);
+    console.log("Fetch response status:", res.status);
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`Failed to fetch shipments: ${res.status} ${res.statusText}`, errorText);
-      throw new Error(`Failed to fetch shipments: ${res.status}`);
-    }
-
-    const data = await res.json();
+    const data = res.data;
 
     // Backend response format: { data, total, page, size }
     // Frontend expects: { data, total, page, limit }
@@ -93,17 +74,13 @@ export async function fetchShipments(params?: {
     };
   } catch (error) {
     console.error("Error fetching shipments:", error);
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
-      console.error("Error cause:", error.cause);
-    }
-    
+
     // ローカルAPIの場合、モックデータを返す
     if (IS_LOCAL_API) {
       console.warn("Using mock shipments due to API fetch failure.");
       return getMockShipments(params?.page || 1, params?.size || 20);
     }
-    
+
     throw error;
   }
 }
@@ -111,16 +88,10 @@ export async function fetchShipments(params?: {
 // 発送詳細取得
 export async function fetchShipment(orderId: string): Promise<Shipment> {
   try {
-    const res = await fetch(`${API_BASE_URL}/shipments/${orderId}`, {
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      console.error(`Failed to fetch shipment: ${res.status} ${res.statusText}`);
-      throw new Error(`Failed to fetch shipment: ${res.status}`);
-    }
-
-    return res.json();
+    const res = await apiClient.get(`/shipments/${orderId}`);
+    // Backend response format: { data: {...} } or direct object
+    const data = res.data;
+    return data.data ?? data;
   } catch (error) {
     console.error("Error fetching shipment:", error);
     throw error;
@@ -128,7 +99,7 @@ export async function fetchShipment(orderId: string): Promise<Shipment> {
 }
 
 // Helper function to add priority_reason to shipments
-function addPriorityReason(shipment: Omit<PriorityShipment, 'priority_reason'>): PriorityShipment {
+function addPriorityReason(shipment: Omit<PriorityShipment, "priority_reason">): PriorityShipment {
   let priority_reason = "";
 
   if (shipment.status === "RETURNED") {
@@ -381,9 +352,27 @@ export const mockTimeline: Record<number, TimelineEvent[]> = {
 // 監査ログモックデータ
 export const mockAuditLogs: Record<number, AuditLog[]> = {
   1: [
-    { id: 4, action: "STATUS_CHANGED", actor: "システム", timestamp: "2026-01-26T09:00:00Z", changes: { status: { old: "SHIPPED", new: "RETURNED" } } },
-    { id: 3, action: "STATUS_CHANGED", actor: "山田太郎", timestamp: "2026-01-25T14:00:00Z", changes: { status: { old: "READY", new: "SHIPPED" } } },
-    { id: 2, action: "STATUS_CHANGED", actor: "山田太郎", timestamp: "2026-01-25T12:00:00Z", changes: { status: { old: "CREATED", new: "READY" } } },
+    {
+      id: 4,
+      action: "STATUS_CHANGED",
+      actor: "システム",
+      timestamp: "2026-01-26T09:00:00Z",
+      changes: { status: { old: "SHIPPED", new: "RETURNED" } },
+    },
+    {
+      id: 3,
+      action: "STATUS_CHANGED",
+      actor: "山田太郎",
+      timestamp: "2026-01-25T14:00:00Z",
+      changes: { status: { old: "READY", new: "SHIPPED" } },
+    },
+    {
+      id: 2,
+      action: "STATUS_CHANGED",
+      actor: "山田太郎",
+      timestamp: "2026-01-25T12:00:00Z",
+      changes: { status: { old: "CREATED", new: "READY" } },
+    },
     { id: 1, action: "CREATED", actor: "システム", timestamp: "2026-01-25T10:00:00Z" },
   ],
 };

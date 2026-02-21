@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: "export",
   reactCompiler: true,
   reactStrictMode: false, // Disable strict mode to prevent double rendering in development
   compiler: {

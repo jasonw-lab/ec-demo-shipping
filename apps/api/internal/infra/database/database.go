@@ -170,7 +170,7 @@ func seedAuthData(db *gorm.DB) error {
 	// bcrypt hash of "admin123"
 	adminUser := domain.User{
 		Username:     "admin",
-		PasswordHash: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+		PasswordHash: "$2a$10$SQHaca/Az1rj2M6lsRQCTOJXtw4lN3j4CrfsjbuPNePfMZ8iF7jqi",
 		DisplayName:  "System Administrator",
 		IsActive:     true,
 		TenantID:     "default",

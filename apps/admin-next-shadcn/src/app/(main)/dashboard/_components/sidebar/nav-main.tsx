@@ -47,12 +47,7 @@ const NavItemExpanded = ({
   if (!item.subItems?.length) {
     return (
       <SidebarMenuItem key={item.title}>
-        <SidebarMenuButton
-          asChild
-          aria-disabled={item.comingSoon}
-          isActive={isActive(item.url)}
-          tooltip={item.title}
-        >
+        <SidebarMenuButton asChild aria-disabled={item.comingSoon} isActive={isActive(item.url)} tooltip={item.title}>
           <Link prefetch={false} href={item.url} target={item.newTab ? "_blank" : undefined}>
             {item.icon && <item.icon />}
             <span>{item.title}</span>

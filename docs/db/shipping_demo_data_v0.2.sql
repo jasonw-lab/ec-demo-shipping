@@ -70,10 +70,10 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
 DELETE FROM users;
 
 INSERT INTO users (id, username, password_hash, display_name, email, is_active, tenant_id) VALUES
-  (1, 'admin',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '管理者 太郎',   'admin@example.com',    1, 'default'),
-  (2, 'operator', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'オペ 花子',     'operator@example.com', 1, 'default'),
-  (3, 'viewer',   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '閲覧 次郎',     'viewer@example.com',   1, 'default'),
-  (4, 'service',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Order Service', 'service@example.com',  1, 'default');
+  (1, 'admin',    '$2a$10$SQHaca/Az1rj2M6lsRQCTOJXtw4lN3j4CrfsjbuPNePfMZ8iF7jqi', '管理者 太郎',   'admin@example.com',    1, 'default'),
+  (2, 'operator', '$2a$10$ghZmYn8QxVjqxn/8dAdflu2mEhmnLQtTj2j6Z1.OBX0QMnk4Ww93u', 'オペ 花子',     'operator@example.com', 1, 'default'),
+  (3, 'viewer',   '$2a$10$vIO8W5wvq.Jy8PWDBg0J6etdbymBvd9OueYVEeV2N/IsAwgBH3o4q', '閲覧 次郎',     'viewer@example.com',   1, 'default'),
+  (4, 'service',  '$2a$10$tvC97aUNC5RonH2G9I6WdevmvihDH2vHV2fkMJBPfwjPAl6SYJAba', 'Order Service', 'service@example.com',  1, 'default');
 
 -- ----- User ↔ Role Mapping -----
 INSERT INTO user_roles (user_id, role_id) VALUES

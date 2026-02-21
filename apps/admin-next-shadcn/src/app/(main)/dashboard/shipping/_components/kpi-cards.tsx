@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import { AlertTriangle, Clock, Package, Truck } from "lucide-react";
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
