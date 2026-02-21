@@ -171,7 +171,11 @@ func SetupRouterWithConfig(db *gorm.DB, cfg *config.Config) *gin.Engine {
 
 	// Setup auth routes only if authService is configured
 	if authService != nil {
-		authHandler := NewAuthHandler(authService)
+		authHandler := NewAuthHandler(authService, &cfg.JWT)
+
+		// Initialize user service and handler (only when auth is enabled)
+		userService := service.NewUserService(userRepo)
+		userHandler := NewUserHandler(userService)
 
 		// Auth endpoints (public)
 		auth := v1.Group("/auth")
@@ -200,6 +204,17 @@ func SetupRouterWithConfig(db *gorm.DB, cfg *config.Config) *gin.Engine {
 
 			// Shipping update (require shipping:update permission)
 			protected.PUT("/shipments/:order_id", middleware.RequirePermission("shipping:update"), shippingHandler.Update)
+
+			// User management endpoints (require user permissions)
+			users := protected.Group("/users")
+			{
+				users.GET("", middleware.RequirePermission("user:read"), userHandler.List)
+				users.GET("/:id", middleware.RequirePermission("user:read"), userHandler.Get)
+				users.POST("", middleware.RequirePermission("user:create"), userHandler.Create)
+				users.PUT("/:id", middleware.RequirePermission("user:update"), userHandler.Update)
+				users.PUT("/:id/status", middleware.RequirePermission("user:update"), userHandler.UpdateStatus)
+				users.PUT("/:id/password", middleware.RequirePermission("user:update"), userHandler.ResetPassword)
+			}
 		}
 	} else {
 		// No auth configured - expose shipping endpoints without auth (development mode)

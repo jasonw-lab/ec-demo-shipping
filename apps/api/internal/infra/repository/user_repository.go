@@ -1,11 +1,15 @@
 package repository
 
 import (
+	"errors"
 	"time"
 
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/domain"
 	"gorm.io/gorm"
 )
+
+// ErrOptimisticLock is returned when optimistic locking fails
+var ErrOptimisticLock = errors.New("optimistic lock conflict: record has been modified")
 
 // UserRepository handles database operations for users
 type UserRepository struct {
@@ -97,3 +101,91 @@ func (r *UserRepository) AssignRoleToUser(userID uint64, roleID uint64) error {
 	}
 	return r.db.Create(&userRole).Error
 }
+
+// UserFilter represents filter options for user queries
+type UserFilter struct {
+	Keyword  string
+	Role     string
+	IsActive *bool
+}
+
+// FindAll finds users with pagination and filters
+func (r *UserRepository) FindAll(filter UserFilter, page, size int) ([]domain.User, int64, error) {
+	var users []domain.User
+	var total int64
+
+	query := r.db.Model(&domain.User{})
+
+	// Exclude service role users
+	query = query.Where("id NOT IN (SELECT user_id FROM user_roles WHERE role_id IN (SELECT id FROM roles WHERE code = 'service'))")
+
+	// Apply keyword filter (display_name or email)
+	if filter.Keyword != "" {
+		keyword := "%" + filter.Keyword + "%"
+		query = query.Where("display_name LIKE ? OR email LIKE ?", keyword, keyword)
+	}
+
+	// Apply role filter
+	if filter.Role != "" {
+		query = query.Where("id IN (SELECT user_id FROM user_roles WHERE role_id IN (SELECT id FROM roles WHERE code = ?))", filter.Role)
+	}
+
+	// Apply is_active filter
+	if filter.IsActive != nil {
+		query = query.Where("is_active = ?", *filter.IsActive)
+	}
+
+	// Get total count
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Get paginated results with roles preloaded
+	offset := (page - 1) * size
+	if err := query.
+		Preload("Roles").
+		Order("id ASC").
+		Offset(offset).
+		Limit(size).
+		Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
+}
+
+// UpdateWithVersion updates a user with optimistic locking
+func (r *UserRepository) UpdateWithVersion(user *domain.User, expectedVersion uint64) error {
+	result := r.db.Model(&domain.User{}).
+		Where("id = ? AND version = ?", user.ID, expectedVersion).
+		Updates(map[string]interface{}{
+			"display_name": user.DisplayName,
+			"email":        user.Email,
+			"is_active":    user.IsActive,
+			"version":      expectedVersion + 1,
+			"updated_at":   time.Now(),
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrOptimisticLock
+	}
+
+	user.Version = expectedVersion + 1
+	return nil
+}
+
+// UpdatePasswordHash updates a user's password hash
+func (r *UserRepository) UpdatePasswordHash(userID uint64, passwordHash string) error {
+	return r.db.Model(&domain.User{}).
+		Where("id = ?", userID).
+		Update("password_hash", passwordHash).Error
+}
+
+// RemoveAllUserRoles removes all roles from a user
+func (r *UserRepository) RemoveAllUserRoles(userID uint64) error {
+	return r.db.Where("user_id = ?", userID).Delete(&domain.UserRole{}).Error
+}
+

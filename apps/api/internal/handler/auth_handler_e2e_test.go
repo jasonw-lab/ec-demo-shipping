@@ -140,7 +140,7 @@ func setupE2ERouter(t *testing.T, db *gorm.DB) *gin.Engine {
 	shippingService := service.NewShippingService(shippingRepo)
 
 	// Initialize handlers
-	authHandler := NewAuthHandler(authService)
+	authHandler := NewAuthHandler(authService, jwtCfg)
 	shippingHandler := NewShippingHandler(shippingService)
 
 	// Setup router
