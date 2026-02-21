@@ -8,7 +8,9 @@ const IS_LOCAL_API = /localhost|127\.0\.0\.1/.test(process.env.NEXT_PUBLIC_API_U
 export async function fetchShippingSummary(): Promise<ShippingSummary> {
   try {
     const res = await apiClient.get("/shipments/summary");
-    return res.data;
+    // Backend response format: { data: {...} } or direct object
+    const data = res.data;
+    return data.data ?? data;
   } catch (error) {
     console.error("Error fetching shipping summary:", error);
     if (IS_LOCAL_API) {
@@ -23,7 +25,9 @@ export async function fetchShippingSummary(): Promise<ShippingSummary> {
 export async function fetchPriorityShipments(limit = 5): Promise<PriorityShipment[]> {
   try {
     const res = await apiClient.get(`/shipments/priority?limit=${limit}`);
-    return res.data;
+    // Backend response format: { data: [...] } or direct array
+    const data = res.data;
+    return Array.isArray(data) ? data : (data.data || []);
   } catch (error) {
     console.error("Error fetching priority shipments:", error);
     if (IS_LOCAL_API) {
@@ -85,7 +89,9 @@ export async function fetchShipments(params?: {
 export async function fetchShipment(orderId: string): Promise<Shipment> {
   try {
     const res = await apiClient.get(`/shipments/${orderId}`);
-    return res.data;
+    // Backend response format: { data: {...} } or direct object
+    const data = res.data;
+    return data.data ?? data;
   } catch (error) {
     console.error("Error fetching shipment:", error);
     throw error;
