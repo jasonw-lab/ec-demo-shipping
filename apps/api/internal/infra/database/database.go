@@ -165,6 +165,8 @@ func seedAuthData(db *gorm.DB) error {
 	}
 
 	// Create default admin user (password: admin123)
+	// WARNING: This is a default password for initial setup only.
+	// The admin password MUST be changed immediately after first deployment.
 	// bcrypt hash of "admin123"
 	adminUser := domain.User{
 		Username:     "admin",
@@ -193,11 +195,11 @@ func strPtr(s string) *string {
 func ensureShippingTimestampDefaults(db *gorm.DB) error {
 	log.Println("Ensuring shippings.created_at/updated_at defaults...")
 	
-	// Check database type
-	dialector := db.Dialector.Name()
+	// Check database dialect
+	dialectName := db.Dialector.Name()
 	
 	// SQLite doesn't need these fixes - GORM handles timestamps automatically
-	if dialector == "sqlite" {
+	if dialectName == "sqlite" {
 		return nil
 	}
 	
