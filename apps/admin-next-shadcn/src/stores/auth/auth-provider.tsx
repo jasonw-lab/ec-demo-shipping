@@ -4,7 +4,7 @@ import { createContext, type ReactNode, useContext, useEffect, useRef } from "re
 
 import { usePathname, useRouter } from "next/navigation";
 
-import { type StoreApi, useStore } from "zustand";
+import { useStore } from "zustand";
 
 import { apiClient, setAccessToken } from "@/lib/api/client";
 import type { AuthStore } from "@/lib/auth/types";
@@ -16,12 +16,18 @@ const AuthStoreContext = createContext<AuthStoreApi | null>(null);
 /** 認証不要のパス */
 const PUBLIC_PATHS = ["/login", "/register", "/forgot-password"];
 
+/** パスが公開パスかどうかをチェック */
+function isPublicPath(path: string): boolean {
+  return PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+}
+
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const storeRef = useRef<AuthStoreApi | null>(null);
+  const sessionCheckedRef = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -29,22 +35,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     storeRef.current = createAuthStore();
   }
 
-  // 初回マウント時にセッション確認
+  // 初回マウント時にセッション確認（一度だけ実行）
   useEffect(() => {
     const store = storeRef.current;
     if (!store) return;
 
+    // 既にセッションチェック済み、または認証済みの場合はスキップ
+    if (sessionCheckedRef.current) {
+      return;
+    }
+
     const checkSession = async () => {
       // 公開パスの場合はスキップ
-      if (PUBLIC_PATHS.includes(pathname)) {
+      if (isPublicPath(pathname)) {
         return;
       }
 
       const state = store.getState();
       if (state.isAuthenticated) {
+        sessionCheckedRef.current = true;
         return;
       }
 
+      sessionCheckedRef.current = true;
       store.setState({ isLoading: true });
 
       try {
