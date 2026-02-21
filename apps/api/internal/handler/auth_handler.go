@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/config"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/domain/auth"
 	"github.com/jasonw-lab/ec-demo-shipping/apps/api/internal/service"
 )
@@ -13,12 +14,14 @@ import (
 // AuthHandler handles authentication endpoints
 type AuthHandler struct {
 	authService *service.AuthService
+	jwtConfig   *config.JWTConfig
 }
 
 // NewAuthHandler creates a new AuthHandler
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
+func NewAuthHandler(authService *service.AuthService, jwtConfig *config.JWTConfig) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
+		jwtConfig:   jwtConfig,
 	}
 }
 
@@ -133,8 +136,8 @@ func (h *AuthHandler) setRefreshTokenCookie(c *gin.Context, refreshToken string)
 		secure = false
 	}
 
-	// Refresh token valid for 7 days
-	maxAge := 7 * 24 * 60 * 60
+	// Derive Max-Age from JWT config (refresh token duration in days)
+	maxAge := h.jwtConfig.RefreshTokenDuration * 24 * 60 * 60
 
 	c.SetSameSite(sameSite)
 	c.SetCookie(
