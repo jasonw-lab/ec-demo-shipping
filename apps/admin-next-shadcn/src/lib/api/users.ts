@@ -93,7 +93,29 @@ export async function fetchUsers(params: UsersFilterParams = {}): Promise<UsersL
 
   const query = searchParams.toString();
   const response = await apiClient.get(`/users${query ? `?${query}` : ""}`);
-  return unwrapData(response.data);
+
+  // Handle wrapped response: { data: { data: [...], total, ... } } or direct: { data: [...], total, ... }
+  const rawData = response.data?.data ?? response.data;
+
+  // If rawData is an array, it's the users array directly (older API format)
+  if (Array.isArray(rawData)) {
+    return {
+      success: true,
+      data: rawData,
+      total: rawData.length,
+      page: params.page ?? 1,
+      size: params.size ?? 20,
+    };
+  }
+
+  // Otherwise it should be UsersListResponse format
+  return {
+    success: rawData.success ?? true,
+    data: rawData.data ?? [],
+    total: rawData.total ?? 0,
+    page: rawData.page ?? params.page ?? 1,
+    size: rawData.size ?? params.size ?? 20,
+  };
 }
 
 /**
