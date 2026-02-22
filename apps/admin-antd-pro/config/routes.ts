@@ -67,6 +67,13 @@ export default [
     ],
   },
   {
+    name: 'user-management',
+    icon: 'team',
+    path: '/users',
+    access: 'canAdmin',
+    component: './user-management',
+  },
+  {
     path: '/dashboard',
     name: 'dashboard',
     icon: 'dashboard',
@@ -286,13 +293,6 @@ export default [
         component: './account/settings',
       },
     ],
-  },
-  {
-    name: 'user-management',
-    icon: 'team',
-    path: '/users',
-    access: 'canAdmin',
-    component: './user-management',
   },
   {
     path: '/',
