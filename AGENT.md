@@ -199,23 +199,4 @@ gh pr create --title "[Phase X Backend/Frontend] 機能名" \
 - `gh pr merge` コマンドでの CLI マージも **禁止**
 - PR の承認・マージは必ず GitHub Web GUI で人間が確認して実施する
 
-### 8. Issue対応完了の記録
-- **PR マージ後**、`plan_issue.md` を更新
-- 該当 Issue のステータスを「対応完了」に変更
-- 完了日時とPR番号を記録
 
-```markdown
-## Issue一覧
-docs/issues/issue-*.md を参照
-個別のIssueファイルで管理
-
-例:
-- docs/issues/issue-001-backend-project-setup_complete.md
-- docs/issues/issue-002-frontend-project-setup_complete.md
-- docs/issues/issue-003-shipping-list-api_complete.md
-
-各Issueのステータスはファイル名の接尾辞で管理:
-- _complete.md: 完了
-- _in_progress.md: 対応中
-- .md: 未着手
-```
