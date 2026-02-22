@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api/client";
+import { useAuth } from "@/stores/auth/auth-provider";
 
 /** バリデーションスキーマ（SCR-020 Section 5） */
 const passwordChangeSchema = z
@@ -36,6 +37,7 @@ const passwordChangeSchema = z
 type PasswordChangeFormValues = z.infer<typeof passwordChangeSchema>;
 
 export function PasswordChangeForm() {
+  const { user } = useAuth();
   const [isChanging, setIsChanging] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -52,9 +54,15 @@ export function PasswordChangeForm() {
 
   /** パスワード変更処理 */
   const onSubmit = async (values: PasswordChangeFormValues) => {
+    if (!user?.id) {
+      toast.error("ユーザー情報が取得できません");
+      return;
+    }
+
     setIsChanging(true);
     try {
-      await apiClient.put("/users/me/password", {
+      // /users/me/password は存在しないため、/users/:id/password を使用
+      await apiClient.put(`/users/${user.id}/password`, {
         current_password: values.current_password,
         new_password: values.new_password,
       });

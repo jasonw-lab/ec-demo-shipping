@@ -16,13 +16,16 @@ import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api/client";
 import { useAuth } from "@/stores/auth/auth-provider";
 
-/** プロフィール取得レスポンス */
-interface ProfileResponse {
+/** ユーザー詳細レスポンス（GET /users/:id） */
+interface UserDetailResponse {
   id: number;
   username: string;
   display_name: string;
-  email: string;
+  email: string | null;
+  is_active: boolean;
   roles: { code: string; name: string }[];
+  last_login_at: string | null;
+  created_at: string;
   version: number;
 }
 
@@ -39,7 +42,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileForm() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [profile, setProfile] = useState<UserDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -51,12 +54,18 @@ export function ProfileForm() {
     },
   });
 
-  /** プロフィール取得 */
+  /** プロフィール取得（GET /users/:id で完全なデータを取得） */
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const response = await apiClient.get("/users/me");
-        const data: ProfileResponse = response.data.data ?? response.data;
+        // /users/me は version を返さないため、/users/:id を使用
+        const response = await apiClient.get(`/users/${user.id}`);
+        const data: UserDetailResponse = response.data.data ?? response.data;
         setProfile(data);
         form.reset({
           display_name: data.display_name || "",
@@ -71,7 +80,7 @@ export function ProfileForm() {
     };
 
     fetchProfile();
-  }, [form]);
+  }, [form, user?.id]);
 
   /** プロフィール保存 */
   const onSubmit = async (values: ProfileFormValues) => {
@@ -87,7 +96,7 @@ export function ProfileForm() {
         version: profile.version,
       });
 
-      const updatedData: ProfileResponse = response.data.data ?? response.data;
+      const updatedData: UserDetailResponse = response.data.data ?? response.data;
       setProfile(updatedData);
       form.reset({
         display_name: updatedData.display_name || "",
@@ -98,9 +107,9 @@ export function ProfileForm() {
       const axiosError = error as { response?: { status?: number } };
       if (axiosError.response?.status === 409) {
         toast.error("データが更新されています。再読み込みしてください");
-        // 最新データを再取得
-        const response = await apiClient.get("/users/me");
-        const data: ProfileResponse = response.data.data ?? response.data;
+        // 最新データを再取得（/users/:id で version を含む完全なデータを取得）
+        const response = await apiClient.get(`/users/${profile.id}`);
+        const data: UserDetailResponse = response.data.data ?? response.data;
         setProfile(data);
         form.reset({
           display_name: data.display_name || "",
