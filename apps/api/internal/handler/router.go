@@ -189,8 +189,10 @@ func SetupRouterWithConfig(db *gorm.DB, cfg *config.Config) *gin.Engine {
 		protected := v1.Group("")
 		protected.Use(middleware.AuthMiddleware(authService))
 		{
-			// User profile (self)
+			// User profile (self) - /users/me must be registered before /users/:id
 			protected.GET("/users/me", authHandler.Me)
+			protected.PUT("/users/me", authHandler.UpdateMe)
+			protected.PUT("/users/me/password", authHandler.ChangePassword)
 
 			// Shipping endpoints (require shipping:read permission)
 			shipments := protected.Group("/shipments")

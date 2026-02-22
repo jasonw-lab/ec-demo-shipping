@@ -14,6 +14,8 @@ var (
 	ErrInvalidCredentials = errors.New("invalid username or password")
 	ErrUserInactive       = errors.New("user account is inactive")
 	ErrUserNotFound       = errors.New("user not found")
+	ErrVersionConflict    = errors.New("version conflict")
+	ErrEmailDuplicate     = errors.New("email already in use")
 )
 
 // AuthService handles authentication operations
@@ -149,4 +151,101 @@ func (s *AuthService) ValidateToken(token string) (*auth.Claims, error) {
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
+}
+
+// ProfileResponse represents a user profile response
+type ProfileResponse struct {
+	ID          uint64   `json:"id"`
+	Username    string   `json:"username"`
+	DisplayName string   `json:"display_name"`
+	Email       string   `json:"email"`
+	IsActive    bool     `json:"is_active"`
+	Roles       []string `json:"roles"`
+	Version     uint64   `json:"version"`
+}
+
+// UpdateProfile updates the current user's profile
+func (s *AuthService) UpdateProfile(userID uint64, displayName, email string, version int) (*ProfileResponse, error) {
+	// Get user from database
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, ErrUserNotFound
+	}
+
+	// Check version for optimistic locking
+	if user.Version != uint64(version) {
+		return nil, ErrVersionConflict
+	}
+
+	// Check email uniqueness if email is being changed
+	currentEmail := ""
+	if user.Email != nil {
+		currentEmail = *user.Email
+	}
+	if email != "" && email != currentEmail {
+		existingUser, err := s.userRepo.FindByUsername(email) // Use username check as fallback
+		if err == nil && existingUser.ID != userID {
+			return nil, ErrEmailDuplicate
+		}
+	}
+
+	// Update fields
+	user.DisplayName = displayName
+	if email != "" {
+		user.Email = &email
+	}
+
+	// Save to database with version check
+	if err := s.userRepo.UpdateWithVersion(user, uint64(version)); err != nil {
+		log.Printf("Failed to update user profile: %v", err)
+		return nil, err
+	}
+
+	log.Printf("Profile updated: user=%s, id=%d", user.Username, user.ID)
+
+	emailStr := ""
+	if user.Email != nil {
+		emailStr = *user.Email
+	}
+
+	return &ProfileResponse{
+		ID:          user.ID,
+		Username:    user.Username,
+		DisplayName: user.DisplayName,
+		Email:       emailStr,
+		IsActive:    user.IsActive,
+		Roles:       user.GetRoleCodes(),
+		Version:     user.Version,
+	}, nil
+}
+
+// ChangePassword changes the current user's password
+func (s *AuthService) ChangePassword(userID uint64, currentPassword, newPassword string) error {
+	// Get user from database
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	// Verify current password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(currentPassword)); err != nil {
+		return ErrInvalidCredentials
+	}
+
+	// Hash new password
+	hashedPassword, err := HashPassword(newPassword)
+	if err != nil {
+		log.Printf("Failed to hash password: %v", err)
+		return err
+	}
+
+	// Update password
+	if err := s.userRepo.UpdatePasswordHash(userID, hashedPassword); err != nil {
+		log.Printf("Failed to update password: %v", err)
+		return err
+	}
+
+	log.Printf("Password changed: user=%s, id=%d", user.Username, user.ID)
+
+	return nil
 }

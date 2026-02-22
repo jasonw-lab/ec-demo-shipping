@@ -206,3 +206,143 @@ func (h *AuthHandler) Me(c *gin.Context) {
 		"permissions":  claims.Permissions,
 	})
 }
+
+// UpdateMeRequest represents the request to update profile
+type UpdateMeRequest struct {
+	DisplayName string `json:"display_name" binding:"required,max=100"`
+	Email       string `json:"email" binding:"omitempty,email,max=255"`
+	Version     int    `json:"version" binding:"required"`
+}
+
+// UpdateMe updates the current user's profile
+// PUT /api/v1/users/me
+func (h *AuthHandler) UpdateMe(c *gin.Context) {
+	// Get claims from context
+	claimsVal, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    "UNAUTHORIZED",
+			"message": "Authentication required",
+		})
+		return
+	}
+
+	claims, ok := claimsVal.(*auth.Claims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    "INTERNAL_ERROR",
+			"message": "Invalid claims",
+		})
+		return
+	}
+
+	var req UpdateMeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    "BAD_REQUEST",
+			"message": "Invalid request body",
+		})
+		return
+	}
+
+	// Update user profile
+	user, err := h.authService.UpdateProfile(claims.UserID, req.DisplayName, req.Email, req.Version)
+	if err != nil {
+		switch err {
+		case service.ErrUserNotFound:
+			c.JSON(http.StatusNotFound, gin.H{
+				"code":    "NOT_FOUND",
+				"message": "User not found",
+			})
+		case service.ErrVersionConflict:
+			c.JSON(http.StatusConflict, gin.H{
+				"code":    "CONFLICT",
+				"message": "Data has been modified. Please reload.",
+			})
+		case service.ErrEmailDuplicate:
+			c.JSON(http.StatusConflict, gin.H{
+				"code":    "CONFLICT",
+				"message": "Email already in use",
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"code":    "INTERNAL_ERROR",
+				"message": "Failed to update profile",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    user,
+	})
+}
+
+// ChangePasswordRequest represents the request to change password
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password" binding:"required"`
+	NewPassword     string `json:"new_password" binding:"required,min=8"`
+}
+
+// ChangePassword changes the current user's password
+// PUT /api/v1/users/me/password
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	// Get claims from context
+	claimsVal, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"code":    "UNAUTHORIZED",
+			"message": "Authentication required",
+		})
+		return
+	}
+
+	claims, ok := claimsVal.(*auth.Claims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    "INTERNAL_ERROR",
+			"message": "Invalid claims",
+		})
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    "BAD_REQUEST",
+			"message": "Invalid request body",
+		})
+		return
+	}
+
+	// Change password
+	err := h.authService.ChangePassword(claims.UserID, req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		switch err {
+		case service.ErrInvalidCredentials:
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    "UNAUTHORIZED",
+				"message": "Current password is incorrect",
+			})
+		case service.ErrUserNotFound:
+			c.JSON(http.StatusNotFound, gin.H{
+				"code":    "NOT_FOUND",
+				"message": "User not found",
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"code":    "INTERNAL_ERROR",
+				"message": "Failed to change password",
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message": "Password changed successfully",
+		},
+	})
+}
