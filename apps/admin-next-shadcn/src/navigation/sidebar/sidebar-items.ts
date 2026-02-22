@@ -79,6 +79,12 @@ export const sidebarItems: NavGroup[] = [
         icon: Package,
       },
       {
+        title: "ユーザー管理",
+        url: "/dashboard/users",
+        icon: Users,
+        requiredRole: "admin",
+      },
+      {
         title: "Default",
         url: "/dashboard/default",
         icon: LayoutDashboard,
@@ -152,12 +158,6 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/coming-soon",
         icon: ReceiptText,
         comingSoon: true,
-      },
-      {
-        title: "ユーザー管理",
-        url: "/dashboard/users",
-        icon: Users,
-        requiredRole: "admin",
       },
       {
         title: "Roles",

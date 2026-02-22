@@ -92,8 +92,8 @@ export function UsersTable() {
       if (filters.is_active !== undefined) params.is_active = filters.is_active;
 
       const response = await fetchUsers(params);
-      setUsers(response.data);
-      setTotal(response.total);
+      setUsers(response.data ?? []);
+      setTotal(response.total ?? 0);
     } catch {
       toast.error("ユーザー一覧の取得に失敗しました");
     } finally {
@@ -266,7 +266,7 @@ export function UsersTable() {
                     <TableCell>{user.display_name}</TableCell>
                     <TableCell className="text-muted-foreground">{user.email || "-"}</TableCell>
                     <TableCell>
-                      {user.roles.map((role) => (
+                      {(user.roles ?? []).map((role) => (
                         <Badge key={role.code} variant={getRoleBadgeVariant(role.code)}>
                           {getRoleDisplayName(role.code)}
                         </Badge>
