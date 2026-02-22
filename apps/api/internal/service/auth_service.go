@@ -100,9 +100,10 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, string, error) {
 
 // RefreshResponse represents a refresh token response
 type RefreshResponse struct {
-	AccessToken string    `json:"access_token"`
-	TokenType   string    `json:"token_type"`
-	ExpiresAt   time.Time `json:"expires_at"`
+	AccessToken string         `json:"access_token"`
+	TokenType   string         `json:"token_type"`
+	ExpiresAt   time.Time      `json:"expires_at"`
+	User        *auth.UserInfo `json:"user"`
 }
 
 // RefreshToken refreshes the access token using a refresh token
@@ -139,6 +140,14 @@ func (s *AuthService) RefreshToken(refreshToken string) (*RefreshResponse, strin
 		AccessToken: tokenPair.AccessToken,
 		TokenType:   tokenPair.TokenType,
 		ExpiresAt:   tokenPair.ExpiresAt,
+		User: &auth.UserInfo{
+			ID:          user.ID,
+			Username:    user.Username,
+			DisplayName: user.DisplayName,
+			Email:       user.Email,
+			Roles:       user.GetRoleCodes(),
+			Permissions: user.GetPermissions(),
+		},
 	}, tokenPair.RefreshToken, nil
 }
 

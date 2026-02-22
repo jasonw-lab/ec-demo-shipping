@@ -25,6 +25,14 @@ const useStyles = createStyles(({ token }) => {
         "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
       backgroundSize: '100% 100%',
     },
+    content: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '32px 0',
+    },
   };
 });
 
@@ -110,12 +118,7 @@ const Login: React.FC = () => {
       <Helmet>
         <title>ログイン - {Settings.title}</title>
       </Helmet>
-      <div
-        style={{
-          flex: '1',
-          padding: '32px 0',
-        }}
-      >
+      <div className={styles.content}>
         <LoginForm
           contentStyle={{
             minWidth: 280,
