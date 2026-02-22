@@ -9,7 +9,7 @@ import { UsersTable } from "./_components/users-table";
 export default function UsersPage() {
   return (
     <AdminGuard>
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex flex-col gap-6">
         <UsersTable />
       </div>
     </AdminGuard>
