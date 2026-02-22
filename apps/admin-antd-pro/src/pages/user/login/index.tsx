@@ -9,7 +9,6 @@ import { Alert, App } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
-import { Footer } from '@/components';
 import { toCurrentUser } from '@/lib/auth/types';
 import { login, toAuthError } from '@/services/auth/api';
 import Settings from '../../../../config/defaultSettings';
@@ -17,13 +16,19 @@ import Settings from '../../../../config/defaultSettings';
 const useStyles = createStyles(({ token }) => {
   return {
     container: {
+      minHeight: '100vh',
       display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      overflow: 'auto',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '16px',
       backgroundImage:
         "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
-      backgroundSize: '100% 100%',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+    loginCard: {
+      width: '100%',
+      maxWidth: '400px',
     },
   };
 });
@@ -110,16 +115,11 @@ const Login: React.FC = () => {
       <Helmet>
         <title>ログイン - {Settings.title}</title>
       </Helmet>
-      <div
-        style={{
-          flex: '1',
-          padding: '32px 0',
-        }}
-      >
+      <div className={styles.loginCard}>
         <LoginForm
           contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
+            width: '100%',
+            maxWidth: '400px',
           }}
           logo={<img alt="logo" src="/logo.svg" />}
           title="発送管理システム"
@@ -189,7 +189,6 @@ const Login: React.FC = () => {
           />
         </LoginForm>
       </div>
-      <Footer />
     </div>
   );
 };

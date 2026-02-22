@@ -14,6 +14,11 @@ export default {
     '/api/v1/': {
       target: 'http://localhost:8080',
       changeOrigin: true,
+      // Cookie を正しく転送するための設定
+      cookieDomainRewrite: 'localhost',
+      cookiePathRewrite: {
+        '/api/v1/auth': '/api/v1/auth',
+      },
     },
   },
   /**
