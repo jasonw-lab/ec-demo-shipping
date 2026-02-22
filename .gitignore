@@ -91,6 +91,7 @@ docs/plan
 apps/api/.env
 .claude
 *_qa.md
+plan_*.md
 
 # JWT RSA keys (never commit)
 apps/api/keys/

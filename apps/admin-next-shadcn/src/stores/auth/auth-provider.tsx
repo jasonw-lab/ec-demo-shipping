@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useStore } from "zustand";
 
 import { apiClient, setAccessToken } from "@/lib/api/client";
+import { normalizeUser } from "@/lib/auth/response-utils";
 import type { AuthStore } from "@/lib/auth/types";
 
 import { type AuthStoreApi, createAuthStore } from "./auth-store";
@@ -68,13 +69,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const response = await apiClient.post("/auth/refresh");
         // Handle both wrapped { data: {...} } and direct response formats
         const data = response.data.data ?? response.data;
-        const { access_token, expires_at, user } = data;
+        const { access_token, expires_at } = data;
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();
         const expiresInSeconds = Math.floor((expiresAtMs - Date.now()) / 1000);
 
         setAccessToken(access_token, expiresInSeconds);
+
+        // user を正規化（refresh レスポンスに含まれない場合は /users/me から取得）
+        let user = normalizeUser(data.user);
+        if (!user) {
+          const meResponse = await apiClient.get("/users/me");
+          const meData = meResponse.data.data ?? meResponse.data;
+          user = normalizeUser(meData);
+        }
 
         store.setState({
           user,

@@ -27,7 +27,7 @@ export async function fetchPriorityShipments(limit = 5): Promise<PriorityShipmen
     const res = await apiClient.get(`/shipments/priority?limit=${limit}`);
     // Backend response format: { data: [...] } or direct array
     const data = res.data;
-    return Array.isArray(data) ? data : (data.data || []);
+    return Array.isArray(data) ? data : data.data || [];
   } catch (error) {
     console.error("Error fetching priority shipments:", error);
     if (IS_LOCAL_API) {
