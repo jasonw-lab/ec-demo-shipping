@@ -5,7 +5,8 @@
  */
 import { request } from '@umijs/max';
 
-const API_BASE = process.env.UMI_APP_API_BASE_URL || 'http://localhost:8080';
+// 開発環境では proxy 経由でアクセスするため空文字列
+const API_BASE = process.env.UMI_APP_API_BASE_URL || '';
 
 /** ユーザー情報 */
 export interface UserData {
@@ -68,18 +69,51 @@ export interface UsersListParams {
   is_active?: boolean;
 }
 
+/** バックエンドの /users/me レスポンス */
+interface MeResponse {
+  id: number;
+  username: string;
+  display_name: string;
+  tenant_id?: string;
+  roles: string[];
+  permissions: string[];
+}
+
 /**
  * 現在のユーザープロフィールを取得
  * GET /api/v1/users/me
  */
 export async function getMyProfile(): Promise<UserData> {
-  const response = await request<{ success: boolean; data: UserData }>(
-    `${API_BASE}/api/v1/users/me`,
-    {
-      method: 'GET',
-    },
-  );
-  return response.data;
+  console.log('[Users API] Fetching profile from:', `${API_BASE}/api/v1/users/me`);
+  try {
+    // バックエンドは { success, data } ラッパーなしで直接レスポンスを返す
+    const response = await request<MeResponse | { success: boolean; data: MeResponse }>(
+      `${API_BASE}/api/v1/users/me`,
+      {
+        method: 'GET',
+      },
+    );
+    console.log('[Users API] Profile response:', response);
+
+    // レスポンス形式の正規化
+    const data = ('data' in response && response.data) ? response.data : response as MeResponse;
+
+    // UserData 形式に変換
+    return {
+      id: data.id,
+      username: data.username,
+      display_name: data.display_name,
+      email: null, // バックエンドから提供されていない
+      is_active: true,
+      roles: data.roles.map((role) => ({ code: role, name: role })),
+      last_login_at: null,
+      created_at: new Date().toISOString(),
+      version: 1,
+    };
+  } catch (error) {
+    console.error('[Users API] Profile fetch failed:', error);
+    throw error;
+  }
 }
 
 /**

@@ -34,12 +34,16 @@ export async function getInitialState(): Promise<{
 }> {
   const fetchUserInfo = async (): Promise<CurrentUser | undefined> => {
     try {
+      console.log('[App] Fetching user info...');
       const user = await getCurrentUser();
+      console.log('[App] Got user:', user);
       if (user) {
-        return toCurrentUser(user);
+        const currentUser = toCurrentUser(user);
+        console.log('[App] Converted to currentUser:', currentUser);
+        return currentUser;
       }
-    } catch {
-      // 認証失敗時は何もしない
+    } catch (error) {
+      console.error('[App] Failed to fetch user info:', error);
     }
     return undefined;
   };

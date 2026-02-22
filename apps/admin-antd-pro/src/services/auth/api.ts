@@ -18,8 +18,8 @@ import {
   setAccessToken,
 } from '@/lib/auth/token';
 
-/** API Base URL */
-const API_BASE = process.env.UMI_APP_API_BASE_URL || 'http://localhost:8080';
+/** API Base URL - 開発環境では proxy 経由でアクセスするため空文字列 */
+const API_BASE = process.env.UMI_APP_API_BASE_URL || '';
 
 /**
  * ログイン API
@@ -55,6 +55,7 @@ export async function login(params: LoginRequest): Promise<LoginResponse> {
  */
 export async function refreshToken(): Promise<LoginResponse | null> {
   try {
+    console.log('[Auth] Attempting token refresh...');
     const response = await request<ApiResponse<LoginResponse> | LoginResponse>(
       `${API_BASE}/api/v1/auth/refresh`,
       {
@@ -64,14 +65,17 @@ export async function refreshToken(): Promise<LoginResponse | null> {
       },
     );
 
+    console.log('[Auth] Refresh response:', response);
     const data = 'data' in response && response.data ? response.data : response;
     const loginData = data as LoginResponse;
+    console.log('[Auth] Refresh successful, user:', loginData.user);
 
     // AccessToken を更新
     setAccessToken(loginData.access_token, loginData.expires_at);
 
     return loginData;
-  } catch {
+  } catch (error) {
+    console.error('[Auth] Refresh failed:', error);
     clearAccessToken();
     return null;
   }
