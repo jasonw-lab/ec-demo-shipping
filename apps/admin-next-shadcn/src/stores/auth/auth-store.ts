@@ -7,6 +7,7 @@ import type { AxiosError } from "axios";
 import { createStore } from "zustand/vanilla";
 
 import { apiClient, clearAccessToken, setAccessToken } from "@/lib/api/client";
+import { normalizeUser } from "@/lib/auth/response-utils";
 import type { ApiErrorResponse, AuthState, AuthStore, LoginResponse } from "@/lib/auth/types";
 import { AUTH_ERROR_MESSAGES, AuthError } from "@/lib/auth/types";
 
@@ -94,9 +95,7 @@ export function createAuthStore(init?: Partial<AuthState>) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawData = response.data as any;
         const data: LoginResponse = rawData.data ?? rawData;
-        console.log("[Auth] Login response data:", JSON.stringify(data, null, 2));
-        const { access_token, expires_at, user } = data;
-        console.log("[Auth] Extracted user:", JSON.stringify(user, null, 2));
+        const { access_token, expires_at } = data;
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();
@@ -104,6 +103,14 @@ export function createAuthStore(init?: Partial<AuthState>) {
 
         // メモリ内にトークン保存
         setAccessToken(access_token, expiresInSeconds);
+
+        // user を正規化（login レスポンスに含まれない場合は /users/me から取得）
+        let user = normalizeUser(data.user);
+        if (!user) {
+          const meResponse = await apiClient.get("/users/me");
+          const meData = meResponse.data.data ?? meResponse.data;
+          user = normalizeUser(meData);
+        }
 
         // ストア更新
         set({
@@ -160,7 +167,7 @@ export function createAuthStore(init?: Partial<AuthState>) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawData = response.data as any;
         const data: LoginResponse = rawData.data ?? rawData;
-        const { access_token, expires_at, user } = data;
+        const { access_token, expires_at } = data;
 
         // expires_at から有効期限を計算
         const expiresAtMs = new Date(expires_at).getTime();
@@ -168,6 +175,14 @@ export function createAuthStore(init?: Partial<AuthState>) {
 
         // メモリ内にトークン保存
         setAccessToken(access_token, expiresInSeconds);
+
+        // user を正規化（既存の user を保持、なければ /users/me から取得）
+        let user = normalizeUser(data.user) ?? get().user;
+        if (!user) {
+          const meResponse = await apiClient.get("/users/me");
+          const meData = meResponse.data.data ?? meResponse.data;
+          user = normalizeUser(meData);
+        }
 
         // ストア更新
         set({
