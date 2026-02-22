@@ -192,8 +192,12 @@ gh pr create --title "[Phase X Backend/Frontend] 機能名" \
 
 ### 7. PR承認・マージ（GitHub Web UI で実施）
 - **Claude CLI では PR 作成まで**
-- 承認・マージは GitHub Web UI で手動実施
-- developブランチへマージ後、定期的にmainブランチへリリース
+- 承認・マージは **必ず GitHub Web UI** で手動実施
+
+**禁止事項:**
+- ローカルで `git merge` して develop/main にマージすることは **禁止**
+- `gh pr merge` コマンドでの CLI マージも **禁止**
+- PR の承認・マージは必ず GitHub Web GUI で人間が確認して実施する
 
 ### 8. Issue対応完了の記録
 - **PR マージ後**、`plan_issue.md` を更新

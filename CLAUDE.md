@@ -136,6 +136,18 @@ fix(scope): description (issue-XXX)
 refactor(scope): description (issue-XXX)
 ```
 
+## PR Rules
+
+**PR作成:**
+- `gh pr create` で PR を作成し、`--base develop` を指定
+- PR本文に `Closes #<issue-number>` を必ず記載
+
+**PR承認・マージ（重要）:**
+- **必ず GitHub Web GUI で承認・マージを実施**
+- ローカルで `git merge` して develop/main へマージすることは **禁止**
+- `gh pr merge` コマンドでの CLI マージも **禁止**
+- Claude CLI の責務は PR 作成まで。承認・マージは人間が GitHub Web で実施
+
 ## Reference Documents
 
 - Requirements: `docs/design/shipping-service-requirements.md`
