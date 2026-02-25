@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile.api
+    container_name: shipping-api
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: "8080"
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: "3307"
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_NAME: ${DB_NAME:-shipping}
+      KAFKA_ENABLED: "false"
+      JWT_PRIVATE_KEY_PATH: /app/keys/jwt-private.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/jwt-public.pem
+      JWT_ISSUER: shipping-service
+      JWT_AUDIENCE: shipping-service
+      JWT_ACCESS_TOKEN_DURATION: "15"
+      JWT_REFRESH_TOKEN_DURATION: "7"
+    ports:
+      - "8080:8080"
+    networks:
+      - youlai-boot
+
+networks:
+  youlai-boot:
+    external: true
