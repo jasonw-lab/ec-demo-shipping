@@ -12,6 +12,7 @@ import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestCo
 import { AuthError } from "@/lib/auth/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 // トークン更新中のフラグ（二重リクエスト防止）
 let isRefreshing = false;
@@ -141,7 +142,7 @@ function createApiClient(): AxiosInstance {
 
           // ログイン画面へリダイレクト
           if (typeof window !== "undefined") {
-            window.location.href = "/login";
+            window.location.href = `${BASE_PATH}/login`;
           }
 
           return Promise.reject(new AuthError("token_expired", "セッションが期限切れです", 401));
