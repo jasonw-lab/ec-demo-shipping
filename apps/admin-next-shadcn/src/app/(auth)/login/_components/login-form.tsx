@@ -83,9 +83,10 @@ function LoginFormContent() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>ユーザー名</FormLabel>
+              <FormLabel htmlFor="username">ユーザー名</FormLabel>
               <FormControl>
                 <Input
+                  id="username"
                   placeholder="ユーザー名を入力"
                   autoComplete="username"
                   autoFocus
@@ -104,10 +105,11 @@ function LoginFormContent() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>パスワード</FormLabel>
-              <FormControl>
-                <div className="relative">
+              <FormLabel htmlFor="password">パスワード</FormLabel>
+              <div className="relative">
+                <FormControl>
                   <Input
+                    id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="パスワードを入力"
                     autoComplete="current-password"
@@ -115,17 +117,17 @@ function LoginFormContent() {
                     className="pr-10"
                     {...field}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </FormControl>
+                </FormControl>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
