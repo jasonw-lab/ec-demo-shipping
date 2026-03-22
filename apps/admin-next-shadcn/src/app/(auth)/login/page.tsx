@@ -40,7 +40,6 @@ function LoginContent() {
             <Package className="h-6 w-6 text-primary-foreground" />
           </div>
           <h1 className="text-xl font-semibold">Shipping Service Admin</h1>
-          <p className="mt-2 text-sm text-muted-foreground">ログインしてください</p>
         </div>
 
         {/* ログインフォーム */}
