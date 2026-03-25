@@ -8,6 +8,12 @@
 
 set -e
 
+# ~/.bashrc を読み込んで BASEPATH などの環境変数を取得
+if [[ -f "$HOME/.bashrc" ]]; then
+    # shellcheck source=/dev/null
+    source "$HOME/.bashrc"
+fi
+
 # パス設定（スクリプトの場所を基準に相対パス）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR"
