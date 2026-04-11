@@ -2,6 +2,9 @@
 
 set -e
 
+# Load user environment
+source "$HOME/.bashrc"
+
 # Setup Node.js (Volta)
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
@@ -12,19 +15,23 @@ echo "npm version: $(npm -v)"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ENV_FILE="$SCRIPT_DIR/docker/.env"
 
-# Load BASEPATH from .env
-if [ -f "$ENV_FILE" ]; then
-    BASEPATH=$(grep '^BASEPATH=' "$ENV_FILE" | cut -d '=' -f2-)
-    echo "Loaded from: $ENV_FILE"
-    echo "BASEPATH: $BASEPATH"
+# Load BASEPATH: use existing env var, or fall back to .env file
+if [ -z "$BASEPATH" ]; then
+    if [ -f "$ENV_FILE" ]; then
+        BASEPATH=$(grep '^BASEPATH=' "$ENV_FILE" | cut -d '=' -f2-)
+        echo "Loaded BASEPATH from: $ENV_FILE"
+    else
+        echo "Error: BASEPATH is not set and .env file not found at $ENV_FILE"
+        exit 1
+    fi
 else
-    echo "Error: .env file not found at $ENV_FILE"
-    exit 1
+    echo "Using existing BASEPATH from environment"
 fi
+echo "BASEPATH: $BASEPATH"
 
 # Validate BASEPATH
 if [ -z "$BASEPATH" ]; then
-    echo "Error: BASEPATH is not set in .env"
+    echo "Error: BASEPATH is not set in environment or .env"
     exit 1
 fi
 
