@@ -125,8 +125,8 @@ const Login: React.FC = () => {
           title="発送管理システム"
           subTitle="Shipping Service Admin"
           initialValues={{
-            username: '',
-            password: '',
+            username: 'demo',
+            password: 'demo1234',
           }}
           submitter={{
             searchConfig: {

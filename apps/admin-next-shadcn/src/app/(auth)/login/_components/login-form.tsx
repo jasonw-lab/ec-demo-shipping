@@ -41,8 +41,8 @@ function LoginFormContent() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      username: "demo",
+      password: "demo1234",
     },
   });
 

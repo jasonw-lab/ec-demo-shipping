@@ -67,20 +67,23 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
 --   operator → operator123
 --   viewer   → viewer123
 --   service  → service123
+--   demo     → demo1234
 DELETE FROM users;
 
 INSERT INTO users (id, username, password_hash, display_name, email, is_active, tenant_id) VALUES
   (1, 'admin',    '$2a$10$v9O2s8k6wOQis4M.kxU.juM2cH7kPKLPRNevCfI/GYq1E4kocLAz.', '管理者 太郎',   'admin@example.com',    1, 'default'),
   (2, 'operator', '$2a$10$ghZmYn8QxVjqxn/8dAdflu2mEhmnLQtTj2j6Z1.OBX0QMnk4Ww93u', 'オペ 花子',     'operator@example.com', 1, 'default'),
   (3, 'viewer',   '$2a$10$vIO8W5wvq.Jy8PWDBg0J6etdbymBvd9OueYVEeV2N/IsAwgBH3o4q', '閲覧 次郎',     'viewer@example.com',   1, 'default'),
-  (4, 'service',  '$2a$10$tvC97aUNC5RonH2G9I6WdevmvihDH2vHV2fkMJBPfwjPAl6SYJAba', 'Order Service', 'service@example.com',  1, 'default');
+  (4, 'service',  '$2a$10$tvC97aUNC5RonH2G9I6WdevmvihDH2vHV2fkMJBPfwjPAl6SYJAba', 'Order Service', 'service@example.com',  1, 'default'),
+  (5, 'demo',     '$2b$10$OydUea6nfs10aB3oM0cnlOTurj8rYoqH2wcVLUVr844CH3KJUIGBK', 'デモ ユーザー', 'demo@example.com',     1, 'default');
 
 -- ----- User ↔ Role Mapping -----
 INSERT INTO user_roles (user_id, role_id) VALUES
   (1, 1),  -- admin    → admin
   (2, 2),  -- operator → operator
   (3, 3),  -- viewer   → viewer
-  (4, 4);  -- service  → service
+  (4, 4),  -- service  → service
+  (5, 2);  -- demo     → operator
 
 -- ============================================================
 -- 2. Shipping デモデータ (100件)
