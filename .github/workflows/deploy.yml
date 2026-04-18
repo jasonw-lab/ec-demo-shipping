@@ -10,12 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       api:                ${{ steps.filter.outputs.api }}
+      front_sh:           ${{ steps.filter.outputs.front_sh }}
       admin-next-shadcn:  ${{ steps.filter.outputs.admin-next-shadcn }}
       admin-antd-pro:     ${{ steps.filter.outputs.admin-antd-pro }}
-      admin-horizon-ui:   ${{ steps.filter.outputs.admin-horizon-ui }}
-      admin-mui:          ${{ steps.filter.outputs.admin-mui }}
-      admin-square-ui:    ${{ steps.filter.outputs.admin-square-ui }}
       admin-ui:           ${{ steps.filter.outputs.admin-ui }}
+      # admin-horizon-ui:   ${{ steps.filter.outputs.admin-horizon-ui }}
+      # admin-mui:          ${{ steps.filter.outputs.admin-mui }}
+      # admin-square-ui:    ${{ steps.filter.outputs.admin-square-ui }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,57 +28,99 @@ jobs:
           filters: |
             api:
               - 'apps/api/**'
+            front_sh:
+              - 'front.sh'
             admin-next-shadcn:
               - 'apps/admin-next-shadcn/**'
             admin-antd-pro:
               - 'apps/admin-antd-pro/**'
-            admin-horizon-ui:
-              - 'apps/admin-horizon-ui/**'
-            admin-mui:
-              - 'apps/admin-mui/**'
-            admin-square-ui:
-              - 'apps/admin-square-ui/**'
             admin-ui:
               - 'apps/admin-ui/**'
+            # admin-horizon-ui:
+            #   - 'apps/admin-horizon-ui/**'
+            # admin-mui:
+            #   - 'apps/admin-mui/**'
+            # admin-square-ui:
+            #   - 'apps/admin-square-ui/**'
 
   deploy-api:
     needs: detect-changes
     if: needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
     steps:
+      - name: Validate deployment configuration
+        run: |
+          missing=()
+
+          [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
+          [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
+          [ -n "${DEPLOY_PATH}" ] || missing+=("DEPLOY_PATH")
+          [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing deployment configuration: ${missing[*]}"
+            echo "::error::Set these as GitHub repository/environment secrets or variables before running deploy."
+            exit 1
+          fi
+
       - name: Deploy API
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd ${{ env.DEPLOY_PATH }}
             ./backend.sh
 
   deploy-frontend:
     needs: detect-changes
     if: |
+      needs.detect-changes.outputs.front_sh             == 'true' ||
       needs.detect-changes.outputs['admin-next-shadcn'] == 'true' ||
       needs.detect-changes.outputs['admin-antd-pro']    == 'true' ||
-      needs.detect-changes.outputs['admin-horizon-ui']  == 'true' ||
-      needs.detect-changes.outputs['admin-mui']         == 'true' ||
-      needs.detect-changes.outputs['admin-square-ui']   == 'true' ||
       needs.detect-changes.outputs['admin-ui']          == 'true'
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
     steps:
+      - name: Validate deployment configuration
+        run: |
+          missing=()
+
+          [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
+          [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
+          [ -n "${DEPLOY_PATH}" ] || missing+=("DEPLOY_PATH")
+          [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing deployment configuration: ${missing[*]}"
+            echo "::error::Set these as GitHub repository/environment secrets or variables before running deploy."
+            exit 1
+          fi
+
       - name: Deploy changed frontend apps
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -e
-            cd ${{ secrets.DEPLOY_PATH }}
-            ${{ needs.detect-changes.outputs['admin-next-shadcn'] == 'true' && './front.sh admin-next-shadcn' || '' }}
-            ${{ needs.detect-changes.outputs['admin-antd-pro']    == 'true' && './front.sh admin-antd-pro'    || '' }}
-            ${{ needs.detect-changes.outputs['admin-horizon-ui']  == 'true' && './front.sh admin-horizon-ui'  || '' }}
-            ${{ needs.detect-changes.outputs['admin-mui']         == 'true' && './front.sh admin-mui'         || '' }}
-            ${{ needs.detect-changes.outputs['admin-square-ui']   == 'true' && './front.sh admin-square-ui'   || '' }}
-            ${{ needs.detect-changes.outputs['admin-ui']          == 'true' && './front.sh admin-ui'          || '' }}
+            cd ${{ env.DEPLOY_PATH }}
+            if [ "${{ needs.detect-changes.outputs.front_sh }}" = "true" ]; then
+              ./front.sh all
+            else
+              [ "${{ needs.detect-changes.outputs['admin-next-shadcn'] }}" = "true" ] && ./front.sh admin-next-shadcn
+              [ "${{ needs.detect-changes.outputs['admin-antd-pro'] }}" = "true" ] && ./front.sh admin-antd-pro
+              [ "${{ needs.detect-changes.outputs['admin-ui'] }}" = "true" ] && ./front.sh admin-ui
+              # [ "${{ needs.detect-changes.outputs['admin-horizon-ui'] }}" = "true" ] && ./front.sh admin-horizon-ui
+              # [ "${{ needs.detect-changes.outputs['admin-mui'] }}" = "true" ] && ./front.sh admin-mui
+              # [ "${{ needs.detect-changes.outputs['admin-square-ui'] }}" = "true" ] && ./front.sh admin-square-ui
+            fi
