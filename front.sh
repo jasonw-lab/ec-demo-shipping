@@ -5,6 +5,7 @@ set -e
 # Setup Node.js (Volta)
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
+export NEXT_TELEMETRY_DISABLED=1
 echo "node version: $(node -v)"
 echo "npm version: $(npm -v)"
 
@@ -131,6 +132,7 @@ git pull || echo "Warning: git pull skipped (uncommitted changes exist)"
 build_app() {
     local APP="$1"
     local DEPLOY_DIR="$BASEPATH/nginx/html/shipping-$APP"
+    local INSTALL_CMD=""
 
     # Resolve build output directory and command per app
     case "$APP" in
@@ -170,7 +172,12 @@ build_app() {
     cd "$SCRIPT_DIR/apps/$APP"
 
     echo "Installing dependencies..."
-    HUSKY=0 npm install
+    if [ -f package-lock.json ]; then
+        INSTALL_CMD="npm ci --no-audit --no-fund"
+    else
+        INSTALL_CMD="npm install --no-audit --no-fund"
+    fi
+    HUSKY=0 eval "$INSTALL_CMD"
 
     echo "Building the project..."
     eval "$BUILD_CMD"

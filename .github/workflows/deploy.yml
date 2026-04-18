@@ -73,6 +73,7 @@ jobs:
           host: ${{ env.DEPLOY_HOST }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 20m
           script: |
             cd ${{ env.DEPLOY_PATH }}
             ./backend.sh
@@ -111,6 +112,7 @@ jobs:
           host: ${{ env.DEPLOY_HOST }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 45m
           script: |
             set -e
             cd ${{ env.DEPLOY_PATH }}
