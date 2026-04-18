@@ -1,0 +1,83 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api:                ${{ steps.filter.outputs.api }}
+      admin-next-shadcn:  ${{ steps.filter.outputs.admin-next-shadcn }}
+      admin-antd-pro:     ${{ steps.filter.outputs.admin-antd-pro }}
+      admin-horizon-ui:   ${{ steps.filter.outputs.admin-horizon-ui }}
+      admin-mui:          ${{ steps.filter.outputs.admin-mui }}
+      admin-square-ui:    ${{ steps.filter.outputs.admin-square-ui }}
+      admin-ui:           ${{ steps.filter.outputs.admin-ui }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+            admin-next-shadcn:
+              - 'apps/admin-next-shadcn/**'
+            admin-antd-pro:
+              - 'apps/admin-antd-pro/**'
+            admin-horizon-ui:
+              - 'apps/admin-horizon-ui/**'
+            admin-mui:
+              - 'apps/admin-mui/**'
+            admin-square-ui:
+              - 'apps/admin-square-ui/**'
+            admin-ui:
+              - 'apps/admin-ui/**'
+
+  deploy-api:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy API
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            ./backend.sh
+
+  deploy-frontend:
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs['admin-next-shadcn'] == 'true' ||
+      needs.detect-changes.outputs['admin-antd-pro']    == 'true' ||
+      needs.detect-changes.outputs['admin-horizon-ui']  == 'true' ||
+      needs.detect-changes.outputs['admin-mui']         == 'true' ||
+      needs.detect-changes.outputs['admin-square-ui']   == 'true' ||
+      needs.detect-changes.outputs['admin-ui']          == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy changed frontend apps
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            ${{ needs.detect-changes.outputs['admin-next-shadcn'] == 'true' && './front.sh admin-next-shadcn' || '' }}
+            ${{ needs.detect-changes.outputs['admin-antd-pro']    == 'true' && './front.sh admin-antd-pro'    || '' }}
+            ${{ needs.detect-changes.outputs['admin-horizon-ui']  == 'true' && './front.sh admin-horizon-ui'  || '' }}
+            ${{ needs.detect-changes.outputs['admin-mui']         == 'true' && './front.sh admin-mui'         || '' }}
+            ${{ needs.detect-changes.outputs['admin-square-ui']   == 'true' && './front.sh admin-square-ui'   || '' }}
+            ${{ needs.detect-changes.outputs['admin-ui']          == 'true' && './front.sh admin-ui'          || '' }}

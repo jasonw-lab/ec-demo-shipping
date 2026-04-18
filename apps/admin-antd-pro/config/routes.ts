@@ -77,6 +77,7 @@ export default [
     path: '/dashboard',
     name: 'dashboard',
     icon: 'dashboard',
+    access: 'canAdmin',
     routes: [
       {
         path: '/dashboard',
@@ -106,6 +107,7 @@ export default [
     path: '/form',
     icon: 'form',
     name: 'form',
+    access: 'canAdmin',
     routes: [
       {
         path: '/form',
@@ -135,6 +137,7 @@ export default [
     path: '/list',
     icon: 'table',
     name: 'list',
+    access: 'canAdmin',
     routes: [
       {
         path: '/list/search',
@@ -193,6 +196,7 @@ export default [
     path: '/profile',
     name: 'profile',
     icon: 'profile',
+    access: 'canAdmin',
     routes: [
       {
         path: '/profile',
@@ -216,6 +220,7 @@ export default [
     name: 'result',
     icon: 'CheckCircleOutlined',
     path: '/result',
+    access: 'canAdmin',
     routes: [
       {
         path: '/result',
@@ -239,6 +244,7 @@ export default [
     name: 'exception',
     icon: 'warning',
     path: '/exception',
+    access: 'canAdmin',
     routes: [
       {
         path: '/exception',
