@@ -170,7 +170,7 @@ build_app() {
     cd "$SCRIPT_DIR/apps/$APP"
 
     echo "Installing dependencies..."
-    npm install
+    HUSKY=0 npm install
 
     echo "Building the project..."
     eval "$BUILD_CMD"

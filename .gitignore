@@ -96,3 +96,4 @@ plan_*.md
 # JWT RSA keys (never commit)
 apps/api/keys/
 *.pem
+out

@@ -3,7 +3,7 @@
 
 import { defineConfig } from '@umijs/max';
 
-const PUBLIC_PATH = '/shipping-antd/';
+const PUBLIC_PATH = '/shipping-admin-antd-pro/';
 
 export default defineConfig({
   publicPath: PUBLIC_PATH,
