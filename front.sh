@@ -35,68 +35,80 @@ if [ -z "$BASEPATH" ]; then
     exit 1
 fi
 
-# Target application (default: admin-next-shadcn)
-TARGET_APP="${1:-admin-next-shadcn}"
+# Target application (default: all)
+TARGET_APP="${1:-all}"
 
 # Validate target app
 case "$TARGET_APP" in
-    admin-next-shadcn|admin-antd-pro)
+    admin-next-shadcn|admin-antd-pro|admin-mui|all)
         echo "Building: $TARGET_APP"
         ;;
     *)
         echo "Error: Unknown target app: $TARGET_APP"
-        echo "Usage: $0 [admin-next-shadcn|admin-antd-pro]"
+        echo "Usage: $0 [admin-next-shadcn|admin-antd-pro|admin-mui|all]"
         exit 1
         ;;
 esac
 
-# Deploy directory
-DEPLOY_DIR="$BASEPATH/nginx/html/shipping-$TARGET_APP"
-
-echo "Starting build process for $TARGET_APP..."
-
 # Pull latest changes (skip if uncommitted changes exist)
 git pull || echo "Warning: git pull skipped (uncommitted changes exist)"
 
-# Navigate to the frontend directory
-cd "$SCRIPT_DIR/apps/$TARGET_APP"
+build_app() {
+    local APP="$1"
+    local DEPLOY_DIR="$BASEPATH/nginx/html/shipping-$APP"
 
-# Install dependencies
-echo "Installing dependencies..."
-npm install
+    echo ""
+    echo "--- Building: $APP ---"
 
-# Build the project
-echo "Building the project..."
-if [ "$TARGET_APP" = "admin-antd-pro" ]; then
-    UMI_ENV=prod npm run build
+    # Navigate to the frontend directory
+    cd "$SCRIPT_DIR/apps/$APP"
+
+    # Install dependencies
+    echo "Installing dependencies..."
+    npm install
+
+    # Build the project
+    echo "Building the project..."
+    if [ "$APP" = "admin-antd-pro" ]; then
+        UMI_ENV=prod npm run build
+    else
+        npm run build
+    fi
+
+    # Determine output directory
+    if [ "$APP" = "admin-next-shadcn" ]; then
+        BUILD_OUTPUT="out"
+    else
+        BUILD_OUTPUT="dist"
+    fi
+
+    # Check if build output exists
+    if [ ! -d "$BUILD_OUTPUT" ]; then
+        echo "Error: Build output directory '$BUILD_OUTPUT' not found"
+        exit 1
+    fi
+
+    # Create target directory
+    echo "Creating target directory..."
+    rm -rf "${DEPLOY_DIR:?}"
+    mkdir -p "$DEPLOY_DIR"
+
+    # Copy the built assets to the target directory
+    echo "Copying built assets to $DEPLOY_DIR..."
+    cp -r "$BUILD_OUTPUT"/* "$DEPLOY_DIR/"
+
+    echo "=== Deployed: $APP → $DEPLOY_DIR ==="
+}
+
+if [ "$TARGET_APP" = "all" ]; then
+    build_app "admin-next-shadcn"
+    build_app "admin-antd-pro"
+    build_app "admin-mui"
 else
-    npm run build
+    build_app "$TARGET_APP"
 fi
-
-# Determine output directory
-if [ "$TARGET_APP" = "admin-next-shadcn" ]; then
-    BUILD_OUTPUT="out"
-else
-    BUILD_OUTPUT="dist"
-fi
-
-# Check if build output exists
-if [ ! -d "$BUILD_OUTPUT" ]; then
-    echo "Error: Build output directory '$BUILD_OUTPUT' not found"
-    exit 1
-fi
-
-# Create target directory
-echo "Creating target directory..."
-rm -rf "${DEPLOY_DIR:?}"
-mkdir -p "$DEPLOY_DIR"
-
-# Copy the built assets to the target directory
-echo "Copying built assets to $DEPLOY_DIR..."
-cp -r "$BUILD_OUTPUT"/* "$DEPLOY_DIR/"
 
 echo ""
 echo "=== Build and deployment completed! ==="
 echo "  App:      $TARGET_APP"
 echo "  BASEPATH: $BASEPATH"
-echo "  Dist:     $DEPLOY_DIR"

@@ -18,16 +18,13 @@ import {
   setAccessToken,
 } from '@/lib/auth/token';
 
-/** API Base URL - 開発環境では proxy 経由でアクセスするため空文字列 */
-const API_BASE = process.env.UMI_APP_API_BASE_URL || '';
-
 /**
  * ログイン API
  * POST /api/v1/auth/login
  */
 export async function login(params: LoginRequest): Promise<LoginResponse> {
   const response = await request<ApiResponse<LoginResponse> | LoginResponse>(
-    `${API_BASE}/api/v1/auth/login`,
+    '/api/v1/auth/login',
     {
       method: 'POST',
       headers: {
@@ -57,7 +54,7 @@ export async function refreshToken(): Promise<LoginResponse | null> {
   try {
     console.log('[Auth] Attempting token refresh...');
     const response = await request<ApiResponse<LoginResponse> | LoginResponse>(
-      `${API_BASE}/api/v1/auth/refresh`,
+      '/api/v1/auth/refresh',
       {
         method: 'POST',
         withCredentials: true, // RefreshToken Cookie を送信
@@ -89,7 +86,7 @@ export async function logout(): Promise<void> {
   const token = getAccessToken();
 
   try {
-    await request(`${API_BASE}/api/v1/auth/logout`, {
+    await request('/api/v1/auth/logout', {
       method: 'POST',
       headers: token
         ? {
