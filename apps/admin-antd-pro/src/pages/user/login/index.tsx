@@ -121,7 +121,7 @@ const Login: React.FC = () => {
             width: '100%',
             maxWidth: '400px',
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
+          logo={<img alt="logo" src={`${process.env.PUBLIC_PATH || '/'}logo.svg`} />}
           title="発送管理システム"
           subTitle="Shipping Service Admin"
           initialValues={{

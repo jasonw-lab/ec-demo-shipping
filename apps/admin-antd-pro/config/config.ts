@@ -180,5 +180,6 @@ export default defineConfig({
   exportStatic: {},
   define: {
     'process.env.CI': process.env.CI,
+    'process.env.PUBLIC_PATH': PUBLIC_PATH,
   },
 });

@@ -5,8 +5,6 @@
  */
 import { request } from '@umijs/max';
 
-// 開発環境では proxy 経由でアクセスするため空文字列
-const API_BASE = process.env.UMI_APP_API_BASE_URL || '';
 
 /** ユーザー情報 */
 export interface UserData {
@@ -84,11 +82,11 @@ interface MeResponse {
  * GET /api/v1/users/me
  */
 export async function getMyProfile(): Promise<UserData> {
-  console.log('[Users API] Fetching profile from:', `${API_BASE}/api/v1/users/me`);
+  console.log('[Users API] Fetching profile from:', '/api/v1/users/me');
   try {
     // バックエンドは { success, data } ラッパーなしで直接レスポンスを返す
     const response = await request<MeResponse | { success: boolean; data: MeResponse }>(
-      `${API_BASE}/api/v1/users/me`,
+      '/api/v1/users/me',
       {
         method: 'GET',
       },
@@ -122,7 +120,7 @@ export async function getMyProfile(): Promise<UserData> {
  */
 export async function updateMyProfile(data: UpdateProfileRequest): Promise<UserData> {
   const response = await request<{ success: boolean; data: UserData }>(
-    `${API_BASE}/api/v1/users/me`,
+    '/api/v1/users/me',
     {
       method: 'PUT',
       data,
@@ -137,7 +135,7 @@ export async function updateMyProfile(data: UpdateProfileRequest): Promise<UserD
  */
 export async function changeMyPassword(data: ChangePasswordRequest): Promise<{ message: string }> {
   const response = await request<{ success: boolean; data: { message: string } }>(
-    `${API_BASE}/api/v1/users/me/password`,
+    '/api/v1/users/me/password',
     {
       method: 'PUT',
       data,
@@ -151,7 +149,7 @@ export async function changeMyPassword(data: ChangePasswordRequest): Promise<{ m
  * GET /api/v1/users
  */
 export async function getUsers(params: UsersListParams): Promise<UsersListResponse> {
-  const response = await request<UsersListResponse>(`${API_BASE}/api/v1/users`, {
+  const response = await request<UsersListResponse>('/api/v1/users', {
     method: 'GET',
     params: {
       page: params.page || 1,
@@ -170,7 +168,7 @@ export async function getUsers(params: UsersListParams): Promise<UsersListRespon
  */
 export async function createUser(data: CreateUserRequest): Promise<UserData> {
   const response = await request<{ success: boolean; data: UserData }>(
-    `${API_BASE}/api/v1/users`,
+    '/api/v1/users',
     {
       method: 'POST',
       data,
@@ -185,7 +183,7 @@ export async function createUser(data: CreateUserRequest): Promise<UserData> {
  */
 export async function updateUser(id: number, data: UpdateUserRequest): Promise<UserData> {
   const response = await request<{ success: boolean; data: UserData }>(
-    `${API_BASE}/api/v1/users/${id}`,
+    `/api/v1/users/${id}`,
     {
       method: 'PUT',
       data,
@@ -205,7 +203,7 @@ export async function updateUserStatus(
   const response = await request<{
     success: boolean;
     data: { id: number; is_active: boolean; version: number };
-  }>(`${API_BASE}/api/v1/users/${id}/status`, {
+  }>(`/api/v1/users/${id}/status`, {
     method: 'PUT',
     data,
   });
@@ -221,7 +219,7 @@ export async function resetUserPassword(
   newPassword: string,
 ): Promise<{ message: string }> {
   const response = await request<{ success: boolean; data: { message: string } }>(
-    `${API_BASE}/api/v1/users/${id}/password`,
+    `/api/v1/users/${id}/password`,
     {
       method: 'PUT',
       data: { new_password: newPassword },
