@@ -75,7 +75,9 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           command_timeout: 20m
           script: |
+            set -e
             cd ${{ env.DEPLOY_PATH }}
+            git pull --ff-only || echo "Warning: pre-deploy git pull skipped"
             ./backend.sh
 
   deploy-frontend:
@@ -90,6 +92,7 @@ jobs:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
       DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
+      BASEPATH: ${{ secrets.BASEPATH || vars.BASEPATH }}
     steps:
       - name: Validate deployment configuration
         run: |
@@ -116,6 +119,10 @@ jobs:
           script: |
             set -e
             cd ${{ env.DEPLOY_PATH }}
+            git pull --ff-only || echo "Warning: pre-deploy git pull skipped"
+            if [ -n "${{ env.BASEPATH }}" ]; then
+              export BASEPATH='${{ env.BASEPATH }}'
+            fi
             if [ "${{ needs.detect-changes.outputs.front_sh }}" = "true" ]; then
               ./front.sh all
             else
