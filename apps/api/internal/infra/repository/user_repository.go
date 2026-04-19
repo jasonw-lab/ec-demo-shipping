@@ -34,7 +34,7 @@ func (r *UserRepository) FindByUsername(username string) (*domain.User, error) {
 	return &user, nil
 }
 
-// FindByID finds a user by ID with roles and permissions preloaded
+// FindByID finds a user by ID with roles and permissions　 preloaded
 func (r *UserRepository) FindByID(id uint64) (*domain.User, error) {
 	var user domain.User
 	err := r.db.
@@ -188,4 +188,3 @@ func (r *UserRepository) UpdatePasswordHash(userID uint64, passwordHash string) 
 func (r *UserRepository) RemoveAllUserRoles(userID uint64) error {
 	return r.db.Where("user_id = ?", userID).Delete(&domain.UserRole{}).Error
 }
-
