@@ -9,7 +9,7 @@ import (
 )
 
 // ErrOptimisticLock is returned when optimistic locking fails
-var ErrOptimisticLock = errors.New("optimistic lock conflict: record has been modified")
+var ErrOptimisticLock = errors.New("optimistic lock conflict:  record has been modified")
 
 // UserRepository handles database operations for users
 type UserRepository struct {
