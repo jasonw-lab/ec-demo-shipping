@@ -97,3 +97,4 @@ plan_*.md
 apps/api/keys/
 *.pem
 out
+docs/interview.md
