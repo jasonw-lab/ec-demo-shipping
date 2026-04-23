@@ -172,8 +172,8 @@ build_app() {
     cd "$SCRIPT_DIR/apps/$APP"
 
     echo "Installing dependencies..."
-    INSTALL_CMD="npm install --no-audit --no-fund"
-    HUSKY=0 eval "$INSTALL_CMD"
+    rm -rf node_modules
+    HUSKY=0 npm install --no-audit --no-fund
 
     echo "Building the project..."
     eval "$BUILD_CMD"
