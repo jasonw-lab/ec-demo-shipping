@@ -173,7 +173,7 @@ build_app() {
 
     echo "Installing dependencies (node: $(node --version), npm: $(npm --version), pwd: $(pwd))..."
     rm -rf node_modules || { echo "ERROR: rm -rf node_modules failed ($?)"; exit 1; }
-    HUSKY=0 npm install --no-audit --no-fund || { echo "ERROR: npm install failed ($?)"; exit 1; }
+    HUSKY=0 npm install --no-audit --no-fund --ignore-scripts 2>&1 || { echo "ERROR: npm install failed ($?)"; exit 1; }
 
     echo "Building the project..."
     eval "$BUILD_CMD"
