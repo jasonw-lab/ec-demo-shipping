@@ -172,11 +172,7 @@ build_app() {
     cd "$SCRIPT_DIR/apps/$APP"
 
     echo "Installing dependencies..."
-    if [ -f package-lock.json ]; then
-        INSTALL_CMD="npm ci --no-audit --no-fund"
-    else
-        INSTALL_CMD="npm install --no-audit --no-fund"
-    fi
+    INSTALL_CMD="npm install --no-audit --no-fund"
     HUSKY=0 eval "$INSTALL_CMD"
 
     echo "Building the project..."
