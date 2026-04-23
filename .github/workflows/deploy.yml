@@ -47,18 +47,40 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
     steps:
+      - name: Resolve deployment variables
+        id: resolve
+        env:
+          DEPLOY_HOST_SECRET: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER_SECRET: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH_SECRET: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_HOST_VAR: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER_VAR: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH_VAR: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+
+          DEPLOY_HOST="${DEPLOY_HOST_SECRET:-}"
+          DEPLOY_USER="${DEPLOY_USER_SECRET:-}"
+          DEPLOY_PATH="${DEPLOY_PATH_SECRET:-}"
+
+          [ -n "${DEPLOY_HOST}" ] || DEPLOY_HOST="${DEPLOY_HOST_VAR:-}"
+          [ -n "${DEPLOY_USER}" ] || DEPLOY_USER="${DEPLOY_USER_VAR:-}"
+          [ -n "${DEPLOY_PATH}" ] || DEPLOY_PATH="${DEPLOY_PATH_VAR:-}"
+
+          {
+            echo "deploy_host=${DEPLOY_HOST}"
+            echo "deploy_user=${DEPLOY_USER}"
+            echo "deploy_path=${DEPLOY_PATH}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Validate deployment configuration
         run: |
           missing=()
 
-          [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
-          [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
-          [ -n "${DEPLOY_PATH}" ] || missing+=("DEPLOY_PATH")
+          [ -n "${{ steps.resolve.outputs.deploy_host }}" ] || missing+=("DEPLOY_HOST")
+          [ -n "${{ steps.resolve.outputs.deploy_user }}" ] || missing+=("DEPLOY_USER")
+          [ -n "${{ steps.resolve.outputs.deploy_path }}" ] || missing+=("DEPLOY_PATH")
           [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
 
           if [ "${#missing[@]}" -gt 0 ]; then
@@ -70,13 +92,13 @@ jobs:
       - name: Deploy API
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ env.DEPLOY_HOST }}
-          username: ${{ env.DEPLOY_USER }}
+          host: ${{ steps.resolve.outputs.deploy_host }}
+          username: ${{ steps.resolve.outputs.deploy_user }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           command_timeout: 20m
           script: |
             set -e
-            cd ${{ env.DEPLOY_PATH }}
+            cd ${{ steps.resolve.outputs.deploy_path }}
             git pull --ff-only || echo "Warning: pre-deploy git pull skipped"
             ./backend.sh
 
@@ -132,10 +154,7 @@ jobs:
       build_command: NEXT_TELEMETRY_DISABLED=1 npm run build
       output_dir: out
       target_name: shipping-admin-next-shadcn
-      deploy_host: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      deploy_user: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-    secrets:
-      deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+    secrets: inherit
 
   deploy-admin-antd-pro:
     needs: detect-changes
@@ -146,10 +165,7 @@ jobs:
       build_command: UMI_ENV=prod NODE_OPTIONS=--max-old-space-size=4096 npm run build
       output_dir: dist
       target_name: shipping-admin-antd-pro
-      deploy_host: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      deploy_user: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-    secrets:
-      deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+    secrets: inherit
 
   deploy-admin-mui:
     needs: detect-changes
@@ -160,7 +176,4 @@ jobs:
       build_command: npm run build
       output_dir: dist
       target_name: shipping-admin-mui
-      deploy_host: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      deploy_user: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-    secrets:
-      deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+    secrets: inherit
