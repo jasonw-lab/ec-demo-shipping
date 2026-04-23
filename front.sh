@@ -172,8 +172,7 @@ build_app() {
     cd "$SCRIPT_DIR/apps/$APP"
 
     echo "Installing dependencies..."
-    echo "node: $(node --version 2>&1), npm: $(npm --version 2>&1), pwd: $(pwd)"
-    rm -rf node_modules && echo "node_modules removed"
+    rm -rf node_modules
     HUSKY=0 npm install --no-audit --no-fund
 
     echo "Building the project..."
