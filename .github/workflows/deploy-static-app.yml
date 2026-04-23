@@ -1,0 +1,112 @@
+name: Deploy Static App
+
+on:
+  workflow_call:
+    inputs:
+      app_path:
+        required: true
+        type: string
+      build_command:
+        required: true
+        type: string
+      output_dir:
+        required: true
+        type: string
+      target_name:
+        required: true
+        type: string
+      deploy_host:
+        required: true
+        type: string
+      deploy_user:
+        required: true
+        type: string
+      node_version:
+        required: false
+        type: string
+        default: '22.22.2'
+    secrets:
+      deploy_ssh_key:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ inputs.deploy_host }}
+      DEPLOY_USER: ${{ inputs.deploy_user }}
+    steps:
+      - name: Validate deployment configuration
+        run: |
+          missing=()
+
+          [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
+          [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
+          [ -n "${{ secrets.deploy_ssh_key }}" ] || missing+=("DEPLOY_SSH_KEY")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing deployment configuration: ${missing[*]}"
+            echo "::error::Set these as GitHub repository/environment secrets or variables before running deploy."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.app_path }}
+        env:
+          HUSKY: '0'
+        run: npm install --no-audit --no-fund --ignore-scripts
+
+      - name: Build
+        working-directory: ${{ inputs.app_path }}
+        run: ${{ inputs.build_command }}
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.deploy_ssh_key }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Resolve BASEPATH from server
+        id: resolve
+        run: |
+          set -euo pipefail
+          BP=$(ssh "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'REMOTE'
+          for f in "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
+            [ -f "$f" ] || continue
+            line=$(grep -E '^[[:space:]]*(export[[:space:]]+)?BASEPATH[[:space:]]*=' "$f" 2>/dev/null | tail -n 1 || true)
+            [ -n "$line" ] || continue
+            value=${line#*=}
+            value=${value%\"}; value=${value#\"}
+            value=${value%\'}; value=${value#\'}
+            printf '%s\n' "$value"
+            exit 0
+          done
+          exit 1
+          REMOTE
+          )
+          if [ -z "${BP:-}" ]; then
+            echo "::error::Could not resolve BASEPATH from server (~/.bashrc, ~/.bash_profile, ~/.profile)"
+            exit 1
+          fi
+          echo "Resolved BASEPATH=$BP"
+          echo "basepath=$BP" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy build output via rsync
+        env:
+          BASEPATH: ${{ steps.resolve.outputs.basepath }}
+        run: |
+          TARGET="${BASEPATH}/nginx/html/${{ inputs.target_name }}"
+          ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p '${TARGET}'"
+          rsync -avz --delete "${{ inputs.app_path }}/${{ inputs.output_dir }}/" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${TARGET}/"
+          echo "=== Deployed: ${{ inputs.target_name }} → ${TARGET} ==="
