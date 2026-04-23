@@ -14,8 +14,8 @@ jobs:
       admin-next-shadcn:  ${{ steps.filter.outputs.admin-next-shadcn }}
       admin-antd-pro:     ${{ steps.filter.outputs.admin-antd-pro }}
       admin-ui:           ${{ steps.filter.outputs.admin-ui }}
+      admin-mui:          ${{ steps.filter.outputs.admin-mui }}
       # admin-horizon-ui:   ${{ steps.filter.outputs.admin-horizon-ui }}
-      # admin-mui:          ${{ steps.filter.outputs.admin-mui }}
       # admin-square-ui:    ${{ steps.filter.outputs.admin-square-ui }}
     steps:
       - uses: actions/checkout@v4
@@ -36,10 +36,10 @@ jobs:
               - 'apps/admin-antd-pro/**'
             admin-ui:
               - 'apps/admin-ui/**'
+            admin-mui:
+              - 'apps/admin-mui/**'
             # admin-horizon-ui:
             #   - 'apps/admin-horizon-ui/**'
-            # admin-mui:
-            #   - 'apps/admin-mui/**'
             # admin-square-ui:
             #   - 'apps/admin-square-ui/**'
 
@@ -85,7 +85,8 @@ jobs:
     if: |
       needs.detect-changes.outputs.front_sh             == 'true' ||
       needs.detect-changes.outputs['admin-next-shadcn'] == 'true' ||
-      needs.detect-changes.outputs['admin-ui']          == 'true'
+      needs.detect-changes.outputs['admin-ui']          == 'true' ||
+      needs.detect-changes.outputs['admin-mui']         == 'true'
     runs-on: ubuntu-latest
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
@@ -127,8 +128,8 @@ jobs:
             else
               [ "${{ needs.detect-changes.outputs['admin-next-shadcn'] }}" = "true" ] && ./front.sh admin-next-shadcn
               [ "${{ needs.detect-changes.outputs['admin-ui'] }}" = "true" ] && ./front.sh admin-ui
+              [ "${{ needs.detect-changes.outputs['admin-mui'] }}" = "true" ] && ./front.sh admin-mui
               # [ "${{ needs.detect-changes.outputs['admin-horizon-ui'] }}" = "true" ] && ./front.sh admin-horizon-ui
-              # [ "${{ needs.detect-changes.outputs['admin-mui'] }}" = "true" ] && ./front.sh admin-mui
               # [ "${{ needs.detect-changes.outputs['admin-square-ui'] }}" = "true" ] && ./front.sh admin-square-ui
             fi
 
@@ -159,14 +160,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.22.2'
-          cache: 'npm'
-          cache-dependency-path: apps/admin-antd-pro/package-lock.json
 
       - name: Install dependencies
         working-directory: apps/admin-antd-pro
         env:
           HUSKY: '0'
-        run: npm ci --no-audit --no-fund --ignore-scripts
+        run: npm install --no-audit --no-fund --ignore-scripts
 
       - name: Build
         working-directory: apps/admin-antd-pro

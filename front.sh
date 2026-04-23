@@ -116,12 +116,12 @@ TARGET_APP="${1:-all}"
 
 # Validate target app
 case "$TARGET_APP" in
-    admin-next-shadcn|admin-antd-pro|admin-ui|all)
+    admin-next-shadcn|admin-antd-pro|admin-ui|admin-mui|all)
         echo "Building: $TARGET_APP"
         ;;
     *)
         echo "Error: Unknown or disabled target app: $TARGET_APP"
-        echo "Usage: $0 [admin-next-shadcn|admin-antd-pro|admin-ui|all]"
+        echo "Usage: $0 [admin-next-shadcn|admin-antd-pro|admin-ui|admin-mui|all]"
         exit 1
         ;;
 esac
@@ -148,12 +148,12 @@ build_app() {
             BUILD_OUTPUT="out"
             BUILD_CMD="npm run build"
             ;;
+        admin-mui)
+            BUILD_OUTPUT="dist"
+            BUILD_CMD="npm run build"
+            ;;
         # admin-horizon-ui)
         #     BUILD_OUTPUT="out"
-        #     BUILD_CMD="npm run build"
-        #     ;;
-        # admin-mui)
-        #     BUILD_OUTPUT="dist"
         #     BUILD_CMD="npm run build"
         #     ;;
         # admin-square-ui)
@@ -197,8 +197,8 @@ if [ "$TARGET_APP" = "all" ]; then
     build_app "admin-next-shadcn"
     build_app "admin-antd-pro"
     build_app "admin-ui"
+    build_app "admin-mui"
     # build_app "admin-horizon-ui"
-    # build_app "admin-mui"
     # build_app "admin-square-ui"
 else
     build_app "$TARGET_APP"
