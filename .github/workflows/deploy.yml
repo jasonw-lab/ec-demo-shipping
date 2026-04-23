@@ -139,7 +139,6 @@ jobs:
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-      BASEPATH: ${{ secrets.BASEPATH || vars.BASEPATH }}
     steps:
       - name: Validate deployment configuration
         run: |
@@ -147,7 +146,6 @@ jobs:
 
           [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
           [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
-          [ -n "${BASEPATH}" ]    || missing+=("BASEPATH")
           [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
 
           if [ "${#missing[@]}" -gt 0 ]; then
@@ -187,7 +185,34 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
 
+      - name: Resolve BASEPATH from server
+        id: resolve
+        run: |
+          set -euo pipefail
+          BP=$(ssh "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s <<'REMOTE'
+          for f in "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
+            [ -f "$f" ] || continue
+            line=$(grep -E '^[[:space:]]*(export[[:space:]]+)?BASEPATH[[:space:]]*=' "$f" 2>/dev/null | tail -n 1 || true)
+            [ -n "$line" ] || continue
+            value=${line#*=}
+            value=${value%\"}; value=${value#\"}
+            value=${value%\'}; value=${value#\'}
+            printf '%s\n' "$value"
+            exit 0
+          done
+          exit 1
+          REMOTE
+          )
+          if [ -z "${BP:-}" ]; then
+            echo "::error::Could not resolve BASEPATH from server (~/.bashrc, ~/.bash_profile, ~/.profile)"
+            exit 1
+          fi
+          echo "Resolved BASEPATH=$BP"
+          echo "basepath=$BP" >> "$GITHUB_OUTPUT"
+
       - name: Deploy dist via rsync
+        env:
+          BASEPATH: ${{ steps.resolve.outputs.basepath }}
         run: |
           TARGET="${BASEPATH}/nginx/html/shipping-admin-antd-pro"
           ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p '${TARGET}'"
