@@ -71,7 +71,6 @@ jobs:
           npm config set fetch-retry-factor 2
           npm config set fetch-retry-mintimeout 20000
           npm config set fetch-retry-maxtimeout 120000
-          npm config set network-timeout 300000
 
       - name: Install dependencies
         working-directory: ${{ inputs.app_path }}
@@ -83,7 +82,7 @@ jobs:
           attempt=1
           max_attempts=3
 
-          until npm install --no-audit --no-fund --ignore-scripts; do
+          until npm install --no-audit --no-fund --ignore-scripts --fetch-timeout=300000; do
             if [ "$attempt" -ge "$max_attempts" ]; then
               echo "::error::npm install failed after ${max_attempts} attempts"
               exit 1
