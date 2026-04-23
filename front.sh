@@ -171,9 +171,9 @@ build_app() {
 
     cd "$SCRIPT_DIR/apps/$APP"
 
-    echo "Installing dependencies..."
-    rm -rf node_modules
-    HUSKY=0 npm install --no-audit --no-fund
+    echo "Installing dependencies (node: $(node --version), npm: $(npm --version), pwd: $(pwd))..."
+    rm -rf node_modules || { echo "ERROR: rm -rf node_modules failed ($?)"; exit 1; }
+    HUSKY=0 npm install --no-audit --no-fund || { echo "ERROR: npm install failed ($?)"; exit 1; }
 
     echo "Building the project..."
     eval "$BUILD_CMD"
