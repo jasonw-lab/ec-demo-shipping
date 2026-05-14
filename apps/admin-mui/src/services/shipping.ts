@@ -307,16 +307,24 @@ function updateMockShipping(orderId: string, data: UpdateParams): Shipping | nul
 // ==============================|| API FUNCTIONS ||============================== //
 
 /**
- * Fetch with error handling
+ * Fetch with error handling and auth
  */
 async function fetchApi<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
+    const token = localStorage.getItem('access_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>)
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${url}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
+      ...options,
+      headers,
+      credentials: 'include'
     });
 
     const data = await response.json();
@@ -391,8 +399,15 @@ export async function getShippings(params: ListParams = {}): Promise<ListRespons
   if (params.size) searchParams.append('size', String(params.size));
 
   const queryString = searchParams.toString();
+  const token = localStorage.getItem('access_token');
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}/shipments${queryString ? `?${queryString}` : ''}`, {
-    headers: { 'Content-Type': 'application/json' }
+    headers,
+    credentials: 'include'
   });
   return response.json();
 }

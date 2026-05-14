@@ -5,11 +5,23 @@ import Box from '@mui/material/Box';
 // project import
 import NavGroup from './NavGroup';
 import menuItem from 'menu-items';
+import { useAuth } from 'contexts/AuthContext';
 
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 export default function Navigation() {
-  const navGroups = menuItem.items.map((item) => {
+  const { hasRole } = useAuth();
+
+  // Filter menu items based on user role
+  const filteredItems = menuItem.items.filter((item) => {
+    // Hide admin group for non-admin users
+    if (item.id === 'group-admin' && !hasRole('admin')) {
+      return false;
+    }
+    return true;
+  });
+
+  const navGroups = filteredItems.map((item) => {
     switch (item.type) {
       case 'group':
         return <NavGroup key={item.id} item={item} />;
