@@ -97,6 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch {
         // セッション復元失敗: ログイン画面へリダイレクト
         store.setState({ isLoading: false });
+        setIsInitialized(true);
         router.replace("/login");
       }
     };

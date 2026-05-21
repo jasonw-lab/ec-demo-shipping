@@ -50,7 +50,7 @@ export default function MobileSection() {
         <IconButton
           sx={(theme) => ({
             color: 'text.primary',
-            bgcolor: open ? 'grey.300' : 'grey.100',
+            bgcolor: open ? 'grey.300' : 'grey.100'
           })}
           aria-label="open more menu"
           ref={anchorRef}

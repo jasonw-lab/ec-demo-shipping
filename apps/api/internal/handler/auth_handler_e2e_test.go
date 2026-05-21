@@ -178,6 +178,15 @@ func setupE2ERouter(t *testing.T, db *gorm.DB) *gin.Engine {
 	return router
 }
 
+func findCookieByNameAndPath(cookies []*http.Cookie, name, path string) *http.Cookie {
+	for _, c := range cookies {
+		if c.Name == name && c.Path == path {
+			return c
+		}
+	}
+	return nil
+}
+
 // Helper to perform login and get access token
 func performLogin(t *testing.T, router *gin.Engine, username, password string) (string, []*http.Cookie) {
 	loginReq := map[string]string{
@@ -242,15 +251,13 @@ func TestE2E_Login_Success(t *testing.T) {
 
 	// Check refresh token cookie
 	cookies := w.Result().Cookies()
-	var refreshCookie *http.Cookie
-	for _, c := range cookies {
-		if c.Name == "refresh_token" {
-			refreshCookie = c
-			break
+	for _, cookiePath := range []string{"/api/v1/auth", "/shipping-api/auth", "/shipping-api/api/v1/auth"} {
+		refreshCookie := findCookieByNameAndPath(cookies, "refresh_token", cookiePath)
+		assert.NotNil(t, refreshCookie)
+		if refreshCookie != nil {
+			assert.True(t, refreshCookie.HttpOnly)
 		}
 	}
-	assert.NotNil(t, refreshCookie)
-	assert.True(t, refreshCookie.HttpOnly)
 }
 
 func TestE2E_Login_InvalidCredentials(t *testing.T) {
@@ -323,13 +330,7 @@ func TestE2E_Refresh_Success(t *testing.T) {
 	require.NotEmpty(t, cookies)
 
 	// Find refresh token cookie
-	var refreshCookie *http.Cookie
-	for _, c := range cookies {
-		if c.Name == "refresh_token" {
-			refreshCookie = c
-			break
-		}
-	}
+	refreshCookie := findCookieByNameAndPath(cookies, "refresh_token", "/api/v1/auth")
 	require.NotNil(t, refreshCookie)
 
 	// Refresh token
@@ -386,10 +387,12 @@ func TestE2E_Logout_Success(t *testing.T) {
 
 	// Check that refresh token cookie is cleared
 	responseCookies := w.Result().Cookies()
-	for _, c := range responseCookies {
-		if c.Name == "refresh_token" {
-			assert.Equal(t, "", c.Value)
-			assert.True(t, c.MaxAge < 0)
+	for _, cookiePath := range []string{"/api/v1/auth", "/shipping-api/auth", "/shipping-api/api/v1/auth"} {
+		refreshCookie := findCookieByNameAndPath(responseCookies, "refresh_token", cookiePath)
+		assert.NotNil(t, refreshCookie)
+		if refreshCookie != nil {
+			assert.Equal(t, "", refreshCookie.Value)
+			assert.True(t, refreshCookie.MaxAge < 0)
 		}
 	}
 }

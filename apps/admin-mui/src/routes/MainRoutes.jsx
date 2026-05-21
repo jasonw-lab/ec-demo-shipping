@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
+import { ProtectedRoute } from 'contexts/AuthContext';
 
 // render- Dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -19,15 +20,25 @@ const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')))
 const ShippingSummary = Loadable(lazy(() => import('pages/shipping/summary')));
 const ShippingList = Loadable(lazy(() => import('pages/shipping/list')));
 
+// render - profile
+const ProfilePage = Loadable(lazy(() => import('pages/profile')));
+
+// render - user management
+const UserManagementPage = Loadable(lazy(() => import('pages/users')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
   path: '/',
-  element: <DashboardLayout />,
+  element: (
+    <ProtectedRoute>
+      <DashboardLayout />
+    </ProtectedRoute>
+  ),
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: <ShippingSummary />
     },
     {
       path: 'dashboard',
@@ -50,6 +61,18 @@ const MainRoutes = {
           element: <ShippingList />
         }
       ]
+    },
+    {
+      path: 'profile',
+      element: <ProfilePage />
+    },
+    {
+      path: 'users',
+      element: (
+        <ProtectedRoute requiredRole="admin">
+          <UserManagementPage />
+        </ProtectedRoute>
+      )
     },
     {
       path: 'typography',

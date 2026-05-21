@@ -140,15 +140,17 @@ func (h *AuthHandler) setRefreshTokenCookie(c *gin.Context, refreshToken string)
 	maxAge := h.jwtConfig.RefreshTokenDuration * 24 * 60 * 60
 
 	c.SetSameSite(sameSite)
-	c.SetCookie(
-		"refresh_token",
-		refreshToken,
-		maxAge,
-		"/api/v1/auth",
-		"",
-		secure,
-		true, // HttpOnly
-	)
+	for _, cookiePath := range refreshTokenCookiePaths() {
+		c.SetCookie(
+			"refresh_token",
+			refreshToken,
+			maxAge,
+			cookiePath,
+			"",
+			secure,
+			true, // HttpOnly
+		)
+	}
 }
 
 // clearRefreshTokenCookie clears the refresh token cookie
@@ -164,15 +166,48 @@ func (h *AuthHandler) clearRefreshTokenCookie(c *gin.Context) {
 	}
 
 	c.SetSameSite(sameSite)
-	c.SetCookie(
-		"refresh_token",
-		"",
-		-1,
-		"/api/v1/auth",
-		"",
-		secure,
-		true,
-	)
+	for _, cookiePath := range refreshTokenCookiePaths() {
+		c.SetCookie(
+			"refresh_token",
+			"",
+			-1,
+			cookiePath,
+			"",
+			secure,
+			true,
+		)
+	}
+}
+
+func refreshTokenCookiePaths() []string {
+	paths := make([]string, 0, 3)
+	seen := make(map[string]struct{})
+
+	configuredPaths := os.Getenv("JWT_REFRESH_COOKIE_PATHS")
+	if configuredPaths == "" {
+		configuredPaths = "/api/v1/auth,/shipping-api/auth,/shipping-api/api/v1/auth"
+	}
+
+	for _, rawPath := range strings.Split(configuredPaths, ",") {
+		cookiePath := strings.TrimSpace(rawPath)
+		if cookiePath == "" {
+			continue
+		}
+		if !strings.HasPrefix(cookiePath, "/") {
+			cookiePath = "/" + cookiePath
+		}
+		if _, exists := seen[cookiePath]; exists {
+			continue
+		}
+		seen[cookiePath] = struct{}{}
+		paths = append(paths, cookiePath)
+	}
+
+	if len(paths) == 0 {
+		return []string{"/api/v1/auth"}
+	}
+
+	return paths
 }
 
 // Me returns the current user's information

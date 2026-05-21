@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - develop
+      - trial/cicd
 
 jobs:
   detect-changes:
@@ -14,8 +14,8 @@ jobs:
       admin-next-shadcn:  ${{ steps.filter.outputs.admin-next-shadcn }}
       admin-antd-pro:     ${{ steps.filter.outputs.admin-antd-pro }}
       admin-ui:           ${{ steps.filter.outputs.admin-ui }}
+      admin-mui:          ${{ steps.filter.outputs.admin-mui }}
       # admin-horizon-ui:   ${{ steps.filter.outputs.admin-horizon-ui }}
-      # admin-mui:          ${{ steps.filter.outputs.admin-mui }}
       # admin-square-ui:    ${{ steps.filter.outputs.admin-square-ui }}
     steps:
       - uses: actions/checkout@v4
@@ -36,10 +36,10 @@ jobs:
               - 'apps/admin-antd-pro/**'
             admin-ui:
               - 'apps/admin-ui/**'
+            admin-mui:
+              - 'apps/admin-mui/**'
             # admin-horizon-ui:
             #   - 'apps/admin-horizon-ui/**'
-            # admin-mui:
-            #   - 'apps/admin-mui/**'
             # admin-square-ui:
             #   - 'apps/admin-square-ui/**'
 
@@ -47,18 +47,40 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
     steps:
+      - name: Resolve deployment variables
+        id: resolve
+        env:
+          DEPLOY_HOST_SECRET: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER_SECRET: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH_SECRET: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_HOST_VAR: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER_VAR: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH_VAR: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+
+          DEPLOY_HOST="${DEPLOY_HOST_SECRET:-}"
+          DEPLOY_USER="${DEPLOY_USER_SECRET:-}"
+          DEPLOY_PATH="${DEPLOY_PATH_SECRET:-}"
+
+          [ -n "${DEPLOY_HOST}" ] || DEPLOY_HOST="${DEPLOY_HOST_VAR:-}"
+          [ -n "${DEPLOY_USER}" ] || DEPLOY_USER="${DEPLOY_USER_VAR:-}"
+          [ -n "${DEPLOY_PATH}" ] || DEPLOY_PATH="${DEPLOY_PATH_VAR:-}"
+
+          {
+            echo "deploy_host=${DEPLOY_HOST}"
+            echo "deploy_user=${DEPLOY_USER}"
+            echo "deploy_path=${DEPLOY_PATH}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Validate deployment configuration
         run: |
           missing=()
 
-          [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
-          [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
-          [ -n "${DEPLOY_PATH}" ] || missing+=("DEPLOY_PATH")
+          [ -n "${{ steps.resolve.outputs.deploy_host }}" ] || missing+=("DEPLOY_HOST")
+          [ -n "${{ steps.resolve.outputs.deploy_user }}" ] || missing+=("DEPLOY_USER")
+          [ -n "${{ steps.resolve.outputs.deploy_path }}" ] || missing+=("DEPLOY_PATH")
           [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
 
           if [ "${#missing[@]}" -gt 0 ]; then
@@ -70,66 +92,88 @@ jobs:
       - name: Deploy API
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ env.DEPLOY_HOST }}
-          username: ${{ env.DEPLOY_USER }}
+          host: ${{ steps.resolve.outputs.deploy_host }}
+          username: ${{ steps.resolve.outputs.deploy_user }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           command_timeout: 20m
           script: |
             set -e
-            cd ${{ env.DEPLOY_PATH }}
+            cd ${{ steps.resolve.outputs.deploy_path }}
             git pull --ff-only || echo "Warning: pre-deploy git pull skipped"
             ./backend.sh
 
-  deploy-frontend:
+  # deploy-frontend:
+  #   needs: detect-changes
+  #   if: |
+  #     needs.detect-changes.outputs.front_sh             == 'true' ||
+  #     needs.detect-changes.outputs['admin-ui']          == 'true'
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+  #     DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+  #     DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
+  #     BASEPATH: ${{ secrets.BASEPATH || vars.BASEPATH }}
+  #   steps:
+  #     - name: Validate deployment configuration
+  #       run: |
+  #         missing=()
+
+  #         [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
+  #         [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
+  #         [ -n "${DEPLOY_PATH}" ] || missing+=("DEPLOY_PATH")
+  #         [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
+
+  #         if [ "${#missing[@]}" -gt 0 ]; then
+  #           echo "::error::Missing deployment configuration: ${missing[*]}"
+  #           echo "::error::Set these as GitHub repository/environment secrets or variables before running deploy."
+  #           exit 1
+  #         fi
+
+  #     - name: Deploy changed frontend apps
+  #       uses: appleboy/ssh-action@v1
+  #       with:
+  #         host: ${{ env.DEPLOY_HOST }}
+  #         username: ${{ env.DEPLOY_USER }}
+  #         key: ${{ secrets.DEPLOY_SSH_KEY }}
+  #         command_timeout: 45m
+  #         script: |
+  #           set -e
+  #           cd ${{ env.DEPLOY_PATH }}
+  #           git pull --ff-only || echo "Warning: pre-deploy git pull skipped"
+  #           if [ -n "${{ env.BASEPATH }}" ]; then
+  #             export BASEPATH='${{ env.BASEPATH }}'
+  #           fi
+  #           ./front.sh admin-ui
+
+  deploy-admin-next-shadcn:
     needs: detect-changes
-    if: |
-      needs.detect-changes.outputs.front_sh             == 'true' ||
-      needs.detect-changes.outputs['admin-next-shadcn'] == 'true' ||
-      needs.detect-changes.outputs['admin-antd-pro']    == 'true' ||
-      needs.detect-changes.outputs['admin-ui']          == 'true'
-    runs-on: ubuntu-latest
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
-      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
-      BASEPATH: ${{ secrets.BASEPATH || vars.BASEPATH }}
-    steps:
-      - name: Validate deployment configuration
-        run: |
-          missing=()
+    if: needs.detect-changes.outputs['admin-next-shadcn'] == 'true'
+    uses: ./.github/workflows/deploy-static-app.yml
+    with:
+      app_path: apps/admin-next-shadcn
+      build_command: NEXT_TELEMETRY_DISABLED=1 npm run build
+      output_dir: out
+      target_name: shipping-admin-next-shadcn
+    secrets: inherit
 
-          [ -n "${DEPLOY_HOST}" ] || missing+=("DEPLOY_HOST")
-          [ -n "${DEPLOY_USER}" ] || missing+=("DEPLOY_USER")
-          [ -n "${DEPLOY_PATH}" ] || missing+=("DEPLOY_PATH")
-          [ -n "${{ secrets.DEPLOY_SSH_KEY }}" ] || missing+=("DEPLOY_SSH_KEY")
+  deploy-admin-antd-pro:
+    needs: detect-changes
+    if: needs.detect-changes.outputs['admin-antd-pro'] == 'true'
+    uses: ./.github/workflows/deploy-static-app.yml
+    with:
+      app_path: apps/admin-antd-pro
+      build_command: UMI_ENV=prod NODE_OPTIONS=--max-old-space-size=4096 npm run build
+      output_dir: dist
+      target_name: shipping-admin-antd-pro
+    secrets: inherit
 
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "::error::Missing deployment configuration: ${missing[*]}"
-            echo "::error::Set these as GitHub repository/environment secrets or variables before running deploy."
-            exit 1
-          fi
-
-      - name: Deploy changed frontend apps
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ env.DEPLOY_HOST }}
-          username: ${{ env.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          command_timeout: 45m
-          script: |
-            set -e
-            cd ${{ env.DEPLOY_PATH }}
-            git pull --ff-only || echo "Warning: pre-deploy git pull skipped"
-            if [ -n "${{ env.BASEPATH }}" ]; then
-              export BASEPATH='${{ env.BASEPATH }}'
-            fi
-            if [ "${{ needs.detect-changes.outputs.front_sh }}" = "true" ]; then
-              ./front.sh all
-            else
-              [ "${{ needs.detect-changes.outputs['admin-next-shadcn'] }}" = "true" ] && ./front.sh admin-next-shadcn
-              [ "${{ needs.detect-changes.outputs['admin-antd-pro'] }}" = "true" ] && ./front.sh admin-antd-pro
-              [ "${{ needs.detect-changes.outputs['admin-ui'] }}" = "true" ] && ./front.sh admin-ui
-              # [ "${{ needs.detect-changes.outputs['admin-horizon-ui'] }}" = "true" ] && ./front.sh admin-horizon-ui
-              # [ "${{ needs.detect-changes.outputs['admin-mui'] }}" = "true" ] && ./front.sh admin-mui
-              # [ "${{ needs.detect-changes.outputs['admin-square-ui'] }}" = "true" ] && ./front.sh admin-square-ui
-            fi
+  deploy-admin-mui:
+    needs: detect-changes
+    if: needs.detect-changes.outputs['admin-mui'] == 'true'
+    uses: ./.github/workflows/deploy-static-app.yml
+    with:
+      app_path: apps/admin-mui
+      build_command: npm run build
+      output_dir: dist
+      target_name: shipping-admin-mui
+    secrets: inherit
